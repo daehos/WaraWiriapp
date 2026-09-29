@@ -1,6 +1,6 @@
 # 🚌 WaraWiriApp
 
-> **Tugas Desain dan Terapkan Perangkat Lunak (DTPL) otw jadi Startup**
+> **Tugas Dinamika Tim Perangkat Lunak (DTPL) otw jadi Startup**
 
 ---
 
