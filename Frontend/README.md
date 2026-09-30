@@ -1,16 +1,35 @@
-# React + Vite
+# WaraWiri Village — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Landing page (dan nantinya formulir reservasi) untuk desa wisata berkelanjutan **WaraWiri Village**. Dibangun dengan React + Vite + Tailwind CSS.
 
-Currently, two official plugins are available:
+## Menjalankan
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev       # dev server di http://localhost:5173
+npm run build     # build production ke dist/
+npm run preview   # preview hasil build production
+npm run lint      # lint dengan oxlint
+```
 
-## React Compiler
+## Struktur
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```text
+src/
+├── assets/village/    # Foto (saat ini placeholder dari Unsplash)
+├── components/        # Navbar, Hero, Carousel, VillageInfo, ContactInfo, VillageMap, Footer
+├── data/village.js    # Konten desa — GANTI dengan data asli begitu tersedia
+├── pages/Landing.jsx  # Merangkai semua komponen jadi satu halaman
+├── App.jsx
+└── main.jsx
+```
 
-## Expanding the Oxlint configuration
+## Catatan Implementasi
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- **Peta lokasi** memakai React Leaflet + tile OpenStreetMap (gratis, tanpa API key). Trik embed Google Maps tanpa API key (`/maps?...&output=embed`) sudah tidak berfungsi lagi di akun Google saat ini — jika ingin kembali ke Google Maps, gunakan Maps Embed API resmi (butuh API key).
+- **Styling** pakai Tailwind CSS v4 lewat plugin `@tailwindcss/vite`. Token warna & font kustom didefinisikan di `src/index.css` lewat blok `@theme`.
+- **Konten** semua teks & data desa saat ini placeholder di `src/data/village.js` (nama, deskripsi, highlight, galeri, kontak, koordinat peta). Untuk mengganti ke data desa mitra yang asli, cukup ubah file ini — tidak perlu menyentuh komponen.
+
+## Status
+
+Sprint 1 (informasi desa + carousel, kontak + peta) sudah selesai. Lihat [README utama](../README.md) di root repo untuk detail progres per-sprint dan acceptance criteria yang belum dikerjakan.
