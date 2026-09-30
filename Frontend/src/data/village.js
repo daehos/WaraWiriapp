@@ -46,4 +46,12 @@ export const village = {
   // app/site for directions.
   mapPosition: [-6.9147, 107.4478],
   mapLinkHref: 'https://www.google.com/maps?q=-6.9147,107.4478',
+  reservation: {
+    jenisWisata: [
+      'Trekking sawah terasering',
+      'Kerajinan & budaya warga',
+      'Homestay warga',
+      'Kuliner lokal',
+    ],
+  },
 }

@@ -8,5 +8,8 @@ export default defineConfig({
   server: {
     // Allows sharing the dev server via a cloudflared quick tunnel (random *.trycloudflare.com host each run).
     allowedHosts: ['.trycloudflare.com'],
+    proxy: {
+      '/api': 'http://localhost:3001',
+    },
   },
 })

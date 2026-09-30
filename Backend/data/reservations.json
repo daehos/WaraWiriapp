@@ -1,0 +1,24 @@
+{
+  "reservations": [
+    {
+      "id": "WWR-20260930-190318-MNV0",
+      "status": "menunggu-konfirmasi",
+      "nama": "Kevin Priatna",
+      "kontak": "08123456789",
+      "tanggal": "2026-10-20",
+      "pax": 4,
+      "jenisWisata": "Kerajinan & budaya warga",
+      "createdAt": "2026-09-30T12:03:18.092Z"
+    },
+    {
+      "id": "WWR-20260930-190531-L1C5",
+      "status": "menunggu-konfirmasi",
+      "nama": "Aulia Andre",
+      "kontak": "08123456789",
+      "tanggal": "2026-10-20",
+      "pax": 2,
+      "jenisWisata": "Kuliner lokal",
+      "createdAt": "2026-09-30T12:05:31.421Z"
+    }
+  ]
+}

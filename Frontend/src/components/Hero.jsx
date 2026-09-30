@@ -23,7 +23,7 @@ export default function Hero({ name, tagline, image }) {
             Kenali Desa Kami
           </a>
           <a
-            href="#kontak"
+            href="#reservasi"
             className="rounded-full border border-sand-50/60 px-6 py-3 text-sm font-semibold text-sand-50 transition hover:bg-sand-50/10"
           >
             Rencanakan Kunjungan
