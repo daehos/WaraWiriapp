@@ -37,7 +37,7 @@ Acceptance criteria (AC) diumumkan bertahap per-sprint oleh tim, jadi bagian ini
 | 2 | Form opsional: Jenis Wisata | ✅ Selesai |
 | 3 | Error message jika form tidak lengkap | ✅ Selesai (error per-field + auto-fokus) |
 | 4 | Muncul halaman "Menunggu Konfirmasi" setelah submit | ✅ Selesai |
-| 5 | Data reservasi tersimpan (JSON sebagai database) | ✅ Selesai — `Backend/data/reservations.json` |
+| 5 | Data reservasi tersimpan online (Firebase Firestore) | ✅ Selesai — koleksi `reservations` di Firestore |
 
 Aturan tambahan: tanggal kunjungan **minimal besok** (tidak boleh hari ini), kontak harus nomor HP Indonesia atau email, jumlah pax bilangan bulat ≥ 1.
 
@@ -54,7 +54,7 @@ Belum diumumkan.
 - Tailwind CSS v4
 - React Leaflet + OpenStreetMap untuk peta lokasi (gratis, tanpa API key)
 
-**Backend** (`Backend/`) — sudah dibangun untuk Sprint 2: API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models), penyimpanan ke **file JSON** (`Backend/data/reservations.json`) sebagai database. Tanpa dependensi eksternal.
+**Backend** (`Backend/`) — sudah dibangun untuk Sprint 2: API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models), penyimpanan ke **Firebase Firestore** (koleksi `reservations`) lewat `firebase-admin`. Database file JSON lama (`Backend/data/reservations.json`) hanya dipakai sebagai sumber migrasi.
 
 - `GET /api/reservations` — daftar semua reservasi
 - `POST /api/reservations` — buat reservasi baru (validasi di server)
@@ -67,16 +67,18 @@ Belum diumumkan.
 WaraWiriApp/
 ├── 📂 Backend/                # API reservasi (Node.js tanpa framework, MVC)
 │   ├── 📂 data/
-│   │   └── reservations.json  # "database" — daftar reservasi (JSON)
+│   │   └── reservations.json  # data lama — sumber migrasi ke Firestore
 │   ├── 📂 src/
 │   │   ├── 📂 controllers/    # reservationsController.js — logika bisnis & response API
-│   │   ├── 📂 models/         # reservationModel.js — baca/tulis file JSON
+│   │   ├── 📂 models/         # reservationModel.js — baca/tulis Firestore
 │   │   ├── 📂 routes/         # reservations.js — dispatch GET/POST /api/reservations
+│   │   ├── 📂 scripts/        # migrateJsonToFirestore.js — migrasi data JSON lama
+│   │   ├── firebase.js        # inisialisasi firebase-admin + kredensial
 │   │   ├── validators.js      # validasi server-side (server tidak percaya client)
 │   │   ├── http.js            # helper response & baca body request
 │   │   └── app.js             # entry point: HTTP server + sajikan Frontend/dist
-│   ├── .env.example           # PORT=3001
-│   └── package.json           # `npm start` — tanpa dependensi
+│   ├── .env.example           # PORT & FIREBASE_SERVICE_ACCOUNT
+│   └── package.json           # `npm start`, `npm run migrate`
 │
 └── 📂 Frontend/               # React + Vite + Tailwind CSS
     ├── 📂 src/
@@ -95,7 +97,8 @@ WaraWiriApp/
 
 ### Prasyarat
 
-- Node.js 18 atau lebih baru, dan npm
+- Node.js 22.9 atau lebih baru, dan npm
+- Akun Google + project [Firebase](https://console.firebase.google.com) (untuk database reservasi)
 
 ### Frontend
 
@@ -109,12 +112,59 @@ Buka [http://localhost:5173](http://localhost:5173) di browser. Untuk build prod
 
 ### Backend
 
-Butuh Node.js 18+ dan `Frontend` sudah di-`npm install` (untuk build):
+Butuh Node.js 22.9+ dan `Frontend` sudah di-`npm install` (untuk build):
+
+**1. Hubungkan Firebase (sekali saja, untuk pemilik project)**
+
+1. Buka [Firebase Console](https://console.firebase.google.com) → pilih project `warawiriapp-da23e`
+2. Buat database Firestore: **Build → Firestore Database → Create database** (production mode, region `asia-southeast1`)
+3. **Project settings → Service accounts → Generate new private key** — file `*.json` akan terunduh
+4. Simpan file itu sebagai `Backend/serviceAccountKey.json` — **sudah cukup, tanpa `.env`**
+5. (Opsional) hanya kalau nama file/port beda — salin `.env.example` jadi `.env`:
+
+   ```env
+   PORT=3001
+   FIREBASE_SERVICE_ACCOUNT=serviceAccountKey.json
+   ```
+
+   (`.env` dan file service account sudah di-`.gitignore` — **jangan pernah di-commit ke git**, kirim filenya lewat WhatsApp/Drive saja)
+6. (Opsional) pindahkan data lama ke Firestore:
+
+   ```bash
+   cd Backend
+   npm run migrate
+   ```
+
+**Menjalankan di laptop lain (tim)**
+
+Kunci Firebase tidak ikut di git. Minta file kunci ke pemilik project (WhatsApp/Drive), lalu:
+
+```bash
+git clone <repo>
+cd WaraWiriapp/Backend && npm install && copy <path-kunci> serviceAccountKey.json
+cd ../Frontend && npm install
+cd ../Backend && npm start      # backend siap
+```
+
+**Security rules** — karena backend memakai `firebase-admin` (melewati rules), blokir akses langsung dari browser/app lain:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+```
+
+**2. Jalankan**
 
 ```bash
 # terminal 1 — mode development (Vite dev server mem-proxy /api ke backend)
 cd Backend
-npm start                          # atau: node src/app.js → http://localhost:3001
+npm start                          # http://localhost:3001 (memuat .env otomatis)
 
 # terminal 2
 cd Frontend
@@ -128,7 +178,7 @@ cd Frontend && npm run build
 cd ../Backend && npm start         # buka http://localhost:3001
 ```
 
-Data reservasi tersimpan di `Backend/data/reservations.json`. Cek lewat `GET http://localhost:3001/api/reservations`.
+Data reservasi tersimpan online di Firestore (koleksi `reservations`, project `warawiriapp-da23e`). Cek lewat `GET http://localhost:3001/api/reservations` atau langsung di Firebase Console.
 
 ---
 
@@ -137,4 +187,5 @@ Data reservasi tersimpan di `Backend/data/reservations.json`. Cek lewat `GET htt
 - **Konten masih placeholder.** Nama desa, deskripsi, kontak, dan koordinat peta ada di `Frontend/src/data/village.js` — cukup ubah file ini untuk mengganti ke data desa mitra yang asli, tidak perlu menyentuh komponen.
 - **Foto galeri** saat ini dari Unsplash (lihat kredit di footer situs) — ganti dengan foto asli desa begitu tersedia.
 - **Alur kerja Git:** buat branch baru per fitur/sprint (contoh: `feature/sprint1-landing-page`), lalu buka Pull Request ke `main`. Jika belum menjadi collaborator repo ini, kerja lewat fork lalu buka PR dari fork tersebut.
+- **Jangan pernah commit kunci Firebase.** `Backend/serviceAccountKey.json`, `Backend/.env`, dan file `*serviceAccount*.json` sudah di-`.gitignore`. Kunci hanya dibagikan di luar git (WhatsApp/Drive) dan cukup ditaruh di `Backend/` — backend otomatis memakainya. Kalau kunci pernah telanjur ter-commit, buang lewat **Firebase Console → Service accounts → Delete existing key**, lalu generate baru.
 - Pertanyaan atau kendala setup, tanyakan di grup tim sebelum membuka issue baru.

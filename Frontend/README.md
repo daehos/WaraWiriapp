@@ -35,4 +35,4 @@ src/
 
 ## Status
 
-Sprint 1 (informasi desa + carousel, kontak + peta) dan Sprint 2 (formulir reservasi + penyimpanan JSON) selesai. Lihat [README utama](../README.md) di root repo untuk detail progres per-sprint dan acceptance criteria yang belum dikerjakan.
+Sprint 1 (informasi desa + carousel, kontak + peta) dan Sprint 2 (formulir reservasi + penyimpanan online di Firebase Firestore) selesai. Lihat [README utama](../README.md) di root repo untuk detail progres per-sprint dan acceptance criteria yang belum dikerjakan.

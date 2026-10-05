@@ -1,33 +1,15 @@
-import { promises as fs } from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { db } from '../firebase.js'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DATA_FILE = path.join(__dirname, '../../data/reservations.json')
+const COLLECTION = 'reservations'
 
 export async function readReservations() {
-  try {
-    const raw = await fs.readFile(DATA_FILE, 'utf8')
-    return JSON.parse(raw).reservations ?? []
-  } catch (err) {
-    if (err.code === 'ENOENT') return []
-    throw err
-  }
+  const snap = await db.collection(COLLECTION).orderBy('createdAt', 'desc').get()
+  return snap.docs.map((doc) => doc.data())
 }
 
-// ponytail: antrean tulis tunggal — cegah reservasi hilang saat 2 POST datang bersamaan.
-// Kalau trafik pernah besar, ganti file JSON dengan SQLite.
-let writeQueue = Promise.resolve()
-
-export function saveReservation(entry) {
-  writeQueue = writeQueue.then(async () => {
-    const reservations = await readReservations()
-    reservations.push(entry)
-    const tmp = `${DATA_FILE}.tmp`
-    await fs.writeFile(tmp, `${JSON.stringify({ reservations }, null, 2)}\n`, 'utf8')
-    await fs.rename(tmp, DATA_FILE)
-  })
-  return writeQueue
+export async function saveReservation(entry) {
+  // pakai id aplikasi sebagai doc ID — anti-duplikat, idempoten saat retry.
+  await db.collection(COLLECTION).doc(entry.id).set(entry)
 }
 
 export function createId(date = new Date()) {

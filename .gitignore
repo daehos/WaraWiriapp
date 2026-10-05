@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# env & kredensial — JANGAN PERNAH di-commit
+.env
+.env.*
+!.env.example
+*serviceAccount*.json
+*firebase-adminsdk*.json

@@ -4,6 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node src/app.js"
+    "start": "node --env-file-if-exists=.env src/app.js",
+    "migrate": "node --env-file-if-exists=.env src/scripts/migrateJsonToFirestore.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
   }
 }
