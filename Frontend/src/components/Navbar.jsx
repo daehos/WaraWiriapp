@@ -1,6 +1,7 @@
 const links = [
   { href: '#beranda', label: 'Beranda' },
   { href: '#tentang', label: 'Tentang' },
+  { href: '#peta-wisata', label: 'Peta Wisata' },
   { href: '#galeri', label: 'Galeri' },
   { href: '#reservasi', label: 'Reservasi' },
   { href: '#kontak', label: 'Kontak' },
