@@ -117,8 +117,8 @@ export default function ReservationSection() {
               Menunggu Konfirmasi
             </h3>
             <p className="mt-2 text-ink-700">
-              Reservasimu sudah tercatat. Tim desa akan menghubungi kamu lewat kontak yang
-              diberikan untuk konfirmasi akhir.
+              Reservasimu sudah tercatat dan sedang menunggu konfirmasi. Simpan nomor
+              reservasi di bawah ini sebagai referensi.
             </p>
 
             <dl className="mt-6 space-y-3 rounded-2xl bg-white p-5 text-sm">
@@ -245,7 +245,7 @@ export default function ReservationSection() {
 
               <div>
                 <label htmlFor="reservasi-pax" className="text-sm font-semibold text-forest-700">
-                  Jumlah orang <span className="text-clay-600">*</span>
+                  Jumlah pengunjung <span className="text-clay-600">*</span>
                 </label>
                 <input
                   id="reservasi-pax"
@@ -285,7 +285,7 @@ export default function ReservationSection() {
                 aria-describedby={errors.jenisWisata ? 'error-jenis' : undefined}
                 className={`mt-1 ${fieldClass(errors.jenisWisata)}`}
               >
-                <option value="">Belum menentukan</option>
+                <option value="" disabled hidden>Pilih destinasi</option>
                 {jenisOptions.map((jenis) => (
                   <option key={jenis} value={jenis}>
                     {jenis}
