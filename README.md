@@ -26,8 +26,8 @@ Acceptance criteria (AC) diumumkan bertahap per-sprint oleh tim, jadi bagian ini
 |---|---|---|
 | 1 | Landing page berisi informasi desa wisata dan gambar carousel | ✅ Selesai |
 | 2 | Landing page berisi informasi kontak dan peta desa wisata | ✅ Selesai |
-| 3 | Landing page menampilkan informasi kuota harian | ⬜ Belum dikerjakan |
-| 4 | Landing page dapat tampil dengan baik di browser mobile phone | 🟡 Layout sudah responsive (Tailwind), belum diverifikasi khusus |
+| 3 | Landing page menampilkan informasi kuota harian | ✅ Selesai |
+| 4 | Landing page dapat tampil dengan baik di browser mobile phone | 🟡 Layout sudah responsive (Tailwind), belum diverifikasi khusus (CEK LAGI GUYS TAKUT KURENG) |
 
 ### Sprint 2 — Formulir Reservasi
 
