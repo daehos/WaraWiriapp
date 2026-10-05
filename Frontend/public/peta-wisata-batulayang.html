@@ -1,0 +1,1850 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jelajahi Peta Wisata Desa Batulayang</title>
+<meta name="description" content="Peta wisata interaktif Desa Wisata Batulayang, Cililin, Bandung Barat: sawah terasering, homestay warga, kuliner khas, dan sanggar budaya.">
+<style>
+  :root {
+    --brand: #0F5A47;
+    --brand-2: #1D7FB8;
+    --ink: #15322b;
+    --muted: #5a6e68;
+    --line: #dbe7f1;
+    --card: #ffffff;
+    --soft: #EAF3FC;
+    --ease-out: cubic-bezier(.22, .8, .2, 1);
+    --cam: .75s;
+    --panel-w: 384px;
+    font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #EAF3FC 0%, #F4F9FE 45%, #FFFFFF 100%);
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .ico { width: 20px; height: 20px; flex: none; }
+
+  /* ---------- Section ---------- */
+  .peta {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: clamp(24px, 4vw, 56px) clamp(16px, 3vw, 44px) clamp(32px, 4vw, 56px);
+  }
+  .peta-head { max-width: 760px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin: 0 0 14px;
+    padding: 6px 12px 6px 8px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--brand);
+    font-size: 13px; font-weight: 700; letter-spacing: .02em;
+  }
+  .eyebrow .dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #20a36b, #1D7FB8); color: #fff;
+  }
+  .eyebrow .dot svg { width: 13px; height: 13px; }
+  .peta-head h1 {
+    margin: 0 0 12px;
+    color: #0F5A47;
+    font-size: clamp(1.75rem, 3.4vw, 2.85rem);
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -.025em;
+  }
+  .peta-head h1 span {
+    background: linear-gradient(90deg, #0F5A47, #1D7FB8);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { margin: 0; color: var(--muted); font-size: clamp(.98rem, 1.25vw, 1.12rem); line-height: 1.6; max-width: 62ch; }
+
+  .peta-body {
+    position: relative;
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr) 124px;
+    grid-template-areas: "legend stage rail";
+    gap: clamp(16px, 2vw, 28px);
+    margin-top: clamp(20px, 3vw, 36px);
+  }
+
+  /* ---------- Legend (zones 1–7) ---------- */
+  .legend { grid-area: legend; align-self: end; }
+  .block-title {
+    margin: 0 0 10px;
+    font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .legend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .lg-item {
+    --c: #888;
+    width: 100%;
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px 7px 7px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .72);
+    text-align: left;
+    transition: background-color .2s, border-color .2s, transform .2s var(--ease-out), opacity .2s;
+  }
+  .lg-item:hover, .lg-item:focus-visible, .lg-item.is-active {
+    background: #fff;
+    border-color: color-mix(in srgb, var(--c) 45%, white);
+    transform: translateX(4px);
+    outline: none;
+  }
+  .lg-item.is-active { box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--c) 70%, black); }
+  .lg-item.is-muted { opacity: .45; }
+  .num-badge {
+    --c: #888;
+    flex: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--c); color: #fff;
+    font-size: 13px; font-weight: 800;
+    box-shadow: 0 0 0 3px #fff, 0 3px 8px -2px rgba(0, 0, 0, .25);
+  }
+  .num-badge.on-light { color: #3b2a00; }
+  .lg-text { display: grid; line-height: 1.25; min-width: 0; }
+  .lg-text strong { font-size: 13.5px; font-weight: 700; }
+  .lg-count { font-size: 12px; color: var(--muted); }
+  .legend-hint { margin: 12px 4px 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  kbd {
+    display: inline-block; padding: 0 5px; border-radius: 5px;
+    border: 1px solid var(--line); background: #fff; font: 600 11px/1.6 ui-monospace, Consolas, monospace;
+  }
+
+  /* ---------- Stage / map ---------- */
+  .stage { grid-area: stage; position: relative; min-width: 0; }
+  .water {
+    position: absolute;
+    inset: -4% -3.5% -6% -3.5%;
+    border-radius: 46% 54% 44% 56% / 52% 46% 54% 48%;
+    background:
+      radial-gradient(60% 50% at 30% 30%, rgba(255, 255, 255, .7), transparent 70%),
+      radial-gradient(120% 100% at 50% 50%, #cfe7fb 0%, #b9dcf7 55%, #a6d1f3 100%);
+    box-shadow: inset 0 -18px 40px -10px rgba(29, 127, 184, .25);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .water::after {
+    content: "";
+    position: absolute; inset: 6% 5%;
+    border-radius: inherit;
+    border: 2px dashed rgba(255, 255, 255, .55);
+  }
+  .map-frame {
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 1024 / 764;
+    border-radius: 28px;
+    overflow: hidden;
+    background: #46aeee;
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, .75), 0 34px 60px -30px rgba(15, 90, 71, .45);
+    scroll-margin-top: 12px;
+    isolation: isolate;
+  }
+  #map {
+    display: block; width: 100%; height: 100%;
+    touch-action: manipulation;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0;
+    transition: opacity .5s ease;
+  }
+  .is-loaded #map { opacity: 1; }
+
+  #camera {
+    transform-origin: 0 0;
+    transform-box: view-box;
+    transition: transform var(--cam) var(--ease-out);
+    will-change: transform;
+  }
+
+  .zone {
+    pointer-events: none;
+    transition: transform .25s ease-out, filter .35s ease, opacity .35s ease;
+  }
+  .zone.is-lifted { transform: translateY(-10px); }
+  .zone-shadow { opacity: 0; transition: opacity .25s ease-out; }
+  .zone.is-lifted .zone-shadow { opacity: .55; }
+  .socket { opacity: 0; transition: opacity .25s ease-out; }
+  .socket.on { opacity: .42; }
+
+  #map.has-focus .zone:not(.is-lifted) { filter: brightness(.85) saturate(.7); }
+  #map.has-selection .zone:not(.is-lifted) { filter: brightness(.76) saturate(.55); opacity: .93; }
+  #map.has-category:not(.has-focus):not(.has-selection) .zone:not(.is-served) { filter: brightness(.8) saturate(.45); }
+  .backdrop { transition: filter .4s ease; }
+  #map.has-selection .backdrop { filter: brightness(.86) saturate(.75); }
+
+  .badge-scale, .pin-scale { transition: transform var(--cam) var(--ease-out); }
+  .badge-scale { transform: scale(var(--bs, 1)); }
+  .pin-scale { transform: scale(var(--ps, 1)); }
+  .badge-num, .pill-text { font-family: inherit; font-weight: 800; pointer-events: none; }
+
+  .hit { fill: transparent; stroke: none; cursor: pointer; outline: none; }
+  .hit:focus-visible { stroke: #fff; stroke-width: 3; stroke-dasharray: 7 6; }
+
+  .cloud { animation: drift 16s ease-in-out infinite alternate; }
+  .cloud[data-drift="bob"] { animation: bob 7s ease-in-out infinite alternate; }
+  .cloud:nth-child(4n+2) { animation-duration: 21s; animation-delay: -7s; }
+  .cloud:nth-child(4n+3) { animation-duration: 13s; animation-delay: -3s; }
+  @keyframes drift { from { transform: translateX(-6px); } to { transform: translateX(7px); } }
+  @keyframes bob { from { transform: translateY(-1px); } to { transform: translateY(1.5px); } }
+
+  .pin { visibility: hidden; pointer-events: none; cursor: pointer; outline: none; }
+  .pin.show { visibility: visible; pointer-events: auto; }
+  .pin.show .pin-drop { animation: pinDrop .62s cubic-bezier(.3, .85, .4, 1) both; animation-delay: var(--d, 0ms); }
+  .pin-body { transition: transform .18s ease-out; }
+  .pin.hl .pin-body, .pin:focus-visible .pin-body { transform: scale(1.28); }
+  .pin-ring { opacity: 0; transition: opacity .18s; }
+  .pin.hl .pin-ring, .pin:focus-visible .pin-ring { opacity: 1; }
+  @keyframes pinDrop {
+    0% { transform: translateY(-46px); opacity: 0; }
+    55% { transform: translateY(2px); opacity: 1; }
+    75% { transform: translateY(-6px); }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Skeleton loader */
+  .skeleton {
+    position: absolute; inset: 0; z-index: 3;
+    display: grid; place-items: center; align-content: center; gap: 14px;
+    background: linear-gradient(100deg, #d7eafa 30%, #eef6fd 50%, #d7eafa 70%);
+    background-size: 220% 100%;
+    animation: shimmer 1.4s linear infinite;
+    transition: opacity .45s ease, visibility 0s linear .45s;
+    color: var(--brand);
+    font-weight: 700; font-size: 14px;
+  }
+  .skeleton svg { width: min(46%, 360px); height: auto; opacity: .55; }
+  .is-loaded .skeleton { opacity: 0; visibility: hidden; }
+  .skeleton.is-error { animation: none; background: #fdecec; color: #8a1f1f; text-align: center; padding: 20px; }
+  @keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+  .tooltip {
+    position: absolute; left: 0; top: 0; z-index: 8;
+    pointer-events: none;
+    padding: 7px 11px;
+    border-radius: 10px;
+    background: rgba(13, 38, 32, .92);
+    color: #fff;
+    font-size: 13px; font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5);
+    opacity: 0;
+    transition: opacity .15s ease;
+  }
+  .tooltip.on { opacity: 1; }
+  .tooltip i { font-style: normal; font-weight: 600; opacity: .8; }
+
+  .back-float {
+    position: absolute; top: 14px; left: 14px; z-index: 7;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 14px 9px 10px;
+    border: 0; border-radius: 999px;
+    background: #fff; color: var(--brand);
+    font-size: 14px; font-weight: 700;
+    box-shadow: 0 10px 24px -12px rgba(15, 60, 50, .6);
+    opacity: 0; transform: translateY(-8px); pointer-events: none;
+    transition: opacity .25s, transform .25s var(--ease-out);
+  }
+  .back-float.on { opacity: 1; transform: none; pointer-events: auto; }
+  .back-float:focus-visible { outline: 3px solid #1D7FB8; outline-offset: 2px; }
+
+  /* POI popover */
+  .poi-pop {
+    position: absolute; left: 0; top: 0; z-index: 12;
+    width: 268px;
+    padding: 14px 14px 12px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 22px 44px -18px rgba(10, 40, 33, .45), 0 0 0 1px rgba(15, 90, 71, .08);
+    opacity: 0; transform: translateY(6px) scale(.97);
+    transition: opacity .18s, transform .18s var(--ease-out);
+  }
+  .poi-pop.on { opacity: 1; transform: none; }
+  .poi-pop::after {
+    content: ""; position: absolute; left: calc(var(--ax, 50%) - 8px); bottom: -7px;
+    width: 16px; height: 16px; background: #fff; transform: rotate(45deg);
+    box-shadow: 4px 4px 6px -3px rgba(10, 40, 33, .15);
+  }
+  .poi-pop.below::after { bottom: auto; top: -7px; box-shadow: none; }
+  .pop-head { display: flex; gap: 10px; align-items: flex-start; padding-right: 22px; }
+  .pop-ico { flex: none; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; color: #fff; }
+  .pop-kicker { margin: 0; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+  .pop-title { margin: 2px 0 0; font-size: 15px; line-height: 1.3; }
+  .pop-desc { margin: 10px 0 8px; font-size: 13px; line-height: 1.5; color: #3e534d; }
+  .pop-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .pop-tags span { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--soft); color: var(--brand); }
+  .pop-loc { margin: 9px 0 0; font-size: 12px; color: var(--muted); display: flex; gap: 5px; align-items: center; }
+  .pop-close {
+    position: absolute; top: 8px; right: 8px;
+    width: 28px; height: 28px; border: 0; border-radius: 50%;
+    display: grid; place-items: center; background: #f2f6f9; color: var(--muted);
+  }
+
+  /* ---------- Category rail ---------- */
+  .rail { grid-area: rail; align-self: center; }
+  .rail-list { display: flex; flex-direction: column; gap: 10px; }
+  .cat {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    width: 100%;
+    padding: 12px 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+    font-size: 13px; font-weight: 700;
+    transition: background-color .2s, color .2s, border-color .2s, transform .2s var(--ease-out), box-shadow .2s;
+  }
+  .cat:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -14px rgba(15, 90, 71, .6); }
+  .cat:focus-visible { outline: 3px solid #1D7FB8; outline-offset: 2px; }
+  .cat-ico {
+    width: 42px; height: 42px; border-radius: 13px;
+    display: grid; place-items: center;
+    background: var(--soft); color: var(--brand);
+    transition: background-color .2s, color .2s;
+  }
+  .cat-ico svg { width: 22px; height: 22px; }
+  .cat-count {
+    min-width: 26px; padding: 1px 7px; border-radius: 999px;
+    background: #f1f5f8; color: var(--muted);
+    font-size: 11.5px; font-weight: 800;
+  }
+  .cat[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .cat[aria-pressed="true"] .cat-ico { background: rgba(255, 255, 255, .16); color: #fff; }
+  .cat[aria-pressed="true"] .cat-count { background: rgba(255, 255, 255, .2); color: #fff; }
+
+  /* ---------- Detail panel ---------- */
+  .panel {
+    position: absolute; top: 0; right: 0; bottom: 0; z-index: 20;
+    width: min(var(--panel-w), 62%);
+    display: flex; flex-direction: column;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: -24px 0 60px -28px rgba(10, 50, 40, .45), 0 0 0 1px rgba(15, 90, 71, .06);
+    transform: translateX(calc(100% + 48px));
+    opacity: 0; visibility: hidden;
+    transition: transform .45s var(--ease-out), opacity .3s ease, visibility 0s linear .45s;
+    overflow: hidden;
+  }
+  .panel.open { transform: none; opacity: 1; visibility: visible; transition: transform .45s var(--ease-out), opacity .3s ease, visibility 0s; }
+  .panel-handle { display: none; }
+  .panel-top { padding: 14px 16px 0; }
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 12px 7px 8px; border: 0; border-radius: 999px;
+    background: var(--soft); color: var(--brand);
+    font-size: 13px; font-weight: 700;
+  }
+  .btn-back:hover { background: #dcebf9; }
+  .btn-back:focus-visible { outline: 3px solid #1D7FB8; outline-offset: 2px; }
+  .panel-head { display: flex; gap: 12px; align-items: center; padding: 14px 18px 4px; }
+  .panel-head .num-badge { width: 42px; height: 42px; font-size: 18px; }
+  .panel-kicker { margin: 0; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .panel-head h2 { margin: 1px 0 0; font-size: 19px; line-height: 1.25; }
+  .panel-count { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+  .panel-count strong { color: var(--ink); }
+  .panel-blurb { margin: 8px 18px 0; font-size: 13.5px; line-height: 1.55; color: #445a53; }
+  .search {
+    margin: 14px 18px 0;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: #f8fbfe;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search:focus-within { border-color: #1D7FB8; box-shadow: 0 0 0 3px rgba(29, 127, 184, .15); }
+  .search svg { width: 18px; height: 18px; color: var(--muted); }
+  .search input { flex: 1; min-width: 0; height: 40px; border: 0; background: transparent; outline: none; font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 18px 0; }
+  .chip {
+    padding: 6px 11px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: #fff;
+    font-size: 12.5px; font-weight: 700; color: #3a514a;
+    transition: background-color .15s, color .15s, border-color .15s;
+  }
+  .chip:hover { border-color: #b7cfe0; }
+  .chip:focus-visible { outline: 3px solid #1D7FB8; outline-offset: 1px; }
+  .chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .chip.is-locked { background: #e3f1ec; border-color: #9fcab9; color: var(--brand); }
+  .result-line { margin: 12px 18px 6px; font-size: 12.5px; color: var(--muted); }
+  .poi-list {
+    list-style: none; margin: 0; padding: 4px 10px 18px;
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  }
+  .poi-item[hidden] { display: none; }
+  .poi-btn {
+    width: 100%;
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 10px;
+    border: 1px solid transparent; border-radius: 14px;
+    background: transparent;
+    text-align: left;
+    transition: background-color .15s, border-color .15s;
+  }
+  .poi-btn:hover, .poi-item.hl .poi-btn { background: #f3f8fd; border-color: #d6e6f3; }
+  .poi-btn:focus-visible { outline: 3px solid #1D7FB8; outline-offset: -2px; }
+  .poi-ico { flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #fff; }
+  .poi-ico svg { width: 19px; height: 19px; }
+  .poi-main { min-width: 0; display: grid; gap: 2px; }
+  .poi-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+  .poi-meta { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .poi-desc {
+    font-size: 12.5px; color: #4a5f58; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .poi-empty { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 13.5px; }
+
+  /* ---------- POI icon strip ---------- */
+  .poi-strip { margin-top: clamp(22px, 3vw, 34px); }
+  .strip-list {
+    list-style: none; margin: 0; padding: 4px 2px 8px;
+    display: flex; gap: 10px; justify-content: space-between;
+    overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: thin;
+  }
+  .strip-list li {
+    flex: 0 0 auto; scroll-snap-align: start;
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 14px 8px 8px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: #fff;
+    font-size: 13px; font-weight: 700; white-space: nowrap;
+  }
+  .strip-ico { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); color: var(--brand); }
+  .strip-ico svg { width: 17px; height: 17px; }
+
+  /* ---------- Calibration editor (only rendered when activated) ---------- */
+  .ed-panel {
+    position: fixed; top: 16px; right: 16px; z-index: 100;
+    width: 300px; max-width: calc(100vw - 32px);
+    padding: 14px 16px 16px;
+    border-radius: 16px;
+    background: #0f2a24; color: #e6f4ee;
+    font-size: 13px; line-height: 1.45;
+    box-shadow: 0 24px 50px -20px rgba(0, 0, 0, .6);
+  }
+  .ed-panel h3 { margin: 0 0 2px; font-size: 15px; }
+  .ed-xy { font: 600 12px ui-monospace, Consolas, monospace; color: #9fd8c2; }
+  .ed-panel label { display: grid; gap: 4px; margin-top: 10px; font-weight: 700; }
+  .ed-panel select, .ed-panel textarea {
+    width: 100%; border: 1px solid #2f5248; border-radius: 9px; background: #163a31; color: #fff; padding: 7px 9px;
+  }
+  .ed-panel textarea { margin-top: 10px; height: 120px; font: 11px/1.4 ui-monospace, Consolas, monospace; resize: vertical; }
+  .ed-panel ul { margin: 10px 0 0; padding-left: 18px; color: #bcd9ce; }
+  .ed-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .ed-actions button { flex: 1; padding: 8px 10px; border: 0; border-radius: 10px; font-weight: 800; background: #2fbf8a; color: #052018; }
+  .ed-actions button[data-act="exit"] { background: #29483f; color: #e6f4ee; }
+  .ed-toast { margin: 8px 0 0; min-height: 1.2em; color: #7ff0c3; font-weight: 700; }
+  .ed-outline { fill: var(--c); fill-opacity: .14; stroke: var(--c); stroke-width: 2; vector-effect: non-scaling-stroke; cursor: pointer; }
+  .ed-outline.active { fill-opacity: .26; stroke: #fff; stroke-width: 2.5; }
+  .ed-edge { stroke: transparent; stroke-width: 12; vector-effect: non-scaling-stroke; cursor: copy; }
+  .ed-edge:hover { stroke: rgba(255, 255, 255, .6); }
+  .ed-handle { fill: #fff; stroke: var(--c); stroke-width: 2.5; vector-effect: non-scaling-stroke; cursor: grab; }
+  .ed-handle:hover { fill: var(--c); }
+  .ed-anchor { fill: var(--c); stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; cursor: move; }
+  .is-editing #hits { pointer-events: none; }
+  .is-editing .zone { transform: none !important; filter: none !important; opacity: 1 !important; }
+  .is-editing .pin { cursor: grab; }
+  .is-editing .pin.show .pin-drop { animation: none; }
+  .is-editing .tooltip, .is-editing .back-float { display: none; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1179px) {
+    .peta-body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "rail" "stage" "legend";
+    }
+    .rail { align-self: stretch; }
+    .rail .block-title { display: none; }
+    .rail-list { flex-direction: row; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; }
+    .cat { flex-direction: row; width: auto; flex: 0 0 auto; padding: 6px 12px 6px 6px; border-radius: 999px; gap: 8px; }
+    .cat-ico { width: 32px; height: 32px; border-radius: 50%; }
+    .cat-ico svg { width: 18px; height: 18px; }
+    .legend-list { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+    .stage { margin: 8px 6px 14px; }
+  }
+  @media (max-width: 759px) {
+    .peta-head h1 { font-size: 1.65rem; }
+    .map-frame { border-radius: 20px; }
+    .legend-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lg-item { padding: 6px 8px 6px 6px; gap: 8px; }
+    .lg-text strong { font-size: 12.5px; }
+    .legend-hint { display: none; }
+    .strip-list { justify-content: flex-start; }
+    .panel {
+      position: fixed; top: auto; left: 0; right: 0; bottom: 0;
+      width: auto; height: min(58vh, 560px);
+      border-radius: 24px 24px 0 0;
+      transform: translateY(105%);
+      box-shadow: 0 -20px 50px -20px rgba(10, 50, 40, .45);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .panel-handle { display: block; width: 44px; height: 5px; margin: 10px auto 0; border-radius: 99px; background: #d3dee7; }
+    .panel-top { padding-top: 6px; }
+    .panel-blurb { display: none; }
+    .poi-pop { width: 240px; }
+    .back-float { top: 10px; left: 10px; font-size: 13px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root { --cam: .01s; }
+    .cloud { animation: none !important; }
+    .pin.show .pin-drop { animation-duration: .01s; }
+    .skeleton { animation: none; }
+    .zone, .panel, .lg-item, .cat { transition-duration: .01s !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Ikon (dipakai ulang lewat <use>) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="ic-foto" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.4"/></g></symbol>
+    <symbol id="ic-saung" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 11.5 12 4l9.5 7.5"/><path d="M5.5 10v10M18.5 10v10M4 15.5h16"/></g></symbol>
+    <symbol id="ic-toilet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20v-7a6 6 0 0 1 12 0v7"/><path d="M12 3.5V7M4 20h16M10 20v-3.5a2 2 0 0 1 4 0V20"/></g></symbol>
+    <symbol id="ic-parkir" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 17V8h3.2a2.6 2.6 0 0 1 0 5.2H10"/></g></symbol>
+    <symbol id="ic-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.2"/></g></symbol>
+    <symbol id="ic-trekking" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 20 6.5-10.5 4 6 2.5-3.5L21.5 20z"/><path d="M15 3.5V9M15 3.5l4 1.6L15 6.7"/></g></symbol>
+    <symbol id="ic-sanggar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5c4.5 1.6 9.5 1.6 14 0v6.5a7 7 0 0 1-14 0z"/><path d="M8.8 10.2h1.4M13.8 10.2h1.4M9.5 14.6c1.6 1.3 3.4 1.3 5 0"/></g></symbol>
+    <symbol id="ic-homestay" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></g></symbol>
+    <symbol id="ic-kuliner" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12h17a8.5 7 0 0 1-17 0z"/><path d="M9 3.5c-1 1.4 1 2.6 0 4.2M13.5 3.5c-1 1.4 1 2.6 0 4.2"/></g></symbol>
+    <symbol id="ic-kerajinan" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-2 10H6z"/><path d="M8 10a4 4 0 0 1 8 0M5.2 14.5h13.6M9.5 10l.8 10M14.5 10l-.8 10"/></g></symbol>
+    <symbol id="ic-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></g></symbol>
+    <symbol id="ic-back" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></g></symbol>
+  </defs>
+</svg>
+
+<main>
+  <section class="peta" id="peta-wisata" aria-labelledby="peta-title">
+    <header class="peta-head">
+      <p class="eyebrow"><span class="dot"><svg aria-hidden="true"><use href="#ic-pin"/></svg></span>Jelajahi Peta Wisata Desa Batulayang</p>
+      <h1 id="peta-title">Jelajahi Pesona <span>Desa Wisata Batulayang!</span></h1>
+      <p class="lead">Temukan keindahan alam terasering, kehangatan homestay warga, kuliner khas, dan kebudayaan Cililin.</p>
+    </header>
+
+    <div class="peta-body" id="peta-body">
+      <aside class="legend" aria-labelledby="legend-title">
+        <h2 class="block-title" id="legend-title">Zona Wisata</h2>
+        <ol class="legend-list" id="legend-list"></ol>
+        <p class="legend-hint">Arahkan kursor atau ketuk zona untuk melihat spot wisata. Tekan <kbd>Esc</kbd> untuk kembali.</p>
+      </aside>
+
+      <div class="stage" id="stage">
+        <div class="water" aria-hidden="true"></div>
+        <div class="map-frame" id="map-frame">
+          <div class="skeleton" id="skeleton" role="status">
+            <svg viewBox="0 0 200 120" aria-hidden="true"><path d="M100 8 192 56 100 104 8 56z" fill="#bcd9f2"/><path d="M8 56v14l92 48 92-48V56l-92 48z" fill="#a9cde9"/></svg>
+            <span id="skeleton-text">Memuat peta wisata…</span>
+          </div>
+          <svg id="map" role="group" aria-label="Peta interaktif Desa Wisata Batulayang. Pilih zona untuk melihat daftar spot." xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <button class="back-float" id="back-float" type="button" tabindex="-1">
+          <svg class="ico" aria-hidden="true"><use href="#ic-back"/></svg>Kembali ke Peta
+        </button>
+        <div class="tooltip" id="tooltip" aria-hidden="true"></div>
+        <div class="poi-pop" id="poi-pop" role="dialog" aria-modal="false" aria-labelledby="pop-title" hidden></div>
+      </div>
+
+      <nav class="rail" aria-labelledby="rail-title">
+        <h2 class="block-title" id="rail-title">Kategori</h2>
+        <div class="rail-list" id="rail-list"></div>
+      </nav>
+
+      <aside class="panel" id="panel" aria-hidden="true" aria-labelledby="panel-title">
+        <div class="panel-handle" aria-hidden="true"></div>
+        <div class="panel-top">
+          <button class="btn-back" id="btn-back" type="button"><svg class="ico" aria-hidden="true"><use href="#ic-back"/></svg>Kembali ke Peta</button>
+        </div>
+        <header class="panel-head">
+          <span class="num-badge" id="panel-badge" aria-hidden="true">1</span>
+          <div>
+            <p class="panel-kicker">Zona <span id="panel-num"></span></p>
+            <h2 id="panel-title">–</h2>
+            <p class="panel-count" id="panel-count"></p>
+          </div>
+        </header>
+        <p class="panel-blurb" id="panel-blurb"></p>
+        <label class="search">
+          <svg aria-hidden="true"><use href="#ic-search"/></svg>
+          <input id="poi-search" type="search" placeholder="Cari nama spot…" autocomplete="off" aria-label="Cari spot berdasarkan nama">
+        </label>
+        <div class="chips" id="chips" role="group" aria-label="Filter layanan"></div>
+        <p class="result-line" id="result-line" aria-live="polite"></p>
+        <ul class="poi-list" id="poi-list" aria-label="Daftar spot"></ul>
+      </aside>
+    </div>
+
+    <div class="poi-strip" aria-labelledby="strip-title">
+      <h2 class="block-title" id="strip-title">Keterangan Ikon</h2>
+      <ul class="strip-list" id="strip-list"></ul>
+    </div>
+    <p class="sr-only" id="live" aria-live="polite"></p>
+  </section>
+</main>
+
+<noscript><p style="text-align:center;padding:16px">Aktifkan JavaScript untuk menjelajahi peta interaktif.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+ * GAMBAR PETA
+ * Ganti nilai ini dengan URL CDN bila diperlukan.
+ * Semua koordinat di bawah memakai piksel artwork asli 1024 × 764;
+ * jika versi CDN beresolusi lain, koordinat diskalakan otomatis.
+ * ===================================================================== */
+const MAP_IMAGE_URL = 'batulayang-map.png';
+const COORD_SPACE = { w: 1024, h: 764 };
+
+/* =====================================================================
+ * REGIONS — satu poligon per zona (piksel gambar), termasuk sisi tanah
+ * cokelat di bawahnya. Kalibrasi: buka ?edit=1 atau tekan "E",
+ * lalu "Salin JSON" dan tempel hasilnya ke sini.
+ * kind: 'zone' = dipotong dari PNG, 'tab' = digambar (akses tepi pulau).
+ * ===================================================================== */
+const REGIONS = [
+  {
+    id: 'sawah-atas', number: 1, kind: 'zone', color: '#D23C9E',
+    name: 'Upper Terraces & Trekking',
+    nameId: 'Trekking & Sawah Terasering Atas',
+    short: 'Trekking & Sawah Atas',
+    blurb: 'Pematang sawah berundak di lereng atas dengan jalur trekking, saung pandang, dan panorama matahari terbenam.',
+    points: [[62,365],[64,330],[80,304],[104,294],[130,288],[160,296],[200,268],[226,240],[248,212],[272,192],[296,170],[318,158],[330,190],[350,215],[372,232],[392,258],[388,290],[380,315],[365,335],[340,346],[320,360],[300,372],[330,378],[390,386],[398,400],[430,410],[446,422],[456,436],[466,446],[474,456],[460,468],[450,480],[448,500],[440,512],[420,520],[400,530],[384,540],[370,552],[344,566],[344,632],[300,606],[264,585],[224,561],[180,537],[136,512],[64,476]],
+    labelAnchor: [196, 384]
+  },
+  {
+    id: 'sawah-bawah', number: 2, kind: 'zone', color: '#7B4BC4',
+    name: 'Lower Terraces & River',
+    nameId: 'Area Sawah Terasering Bawah & Alur Sungai',
+    short: 'Sawah Bawah & Sungai',
+    blurb: 'Sawah terasering bawah yang dialiri Sungai Cihaur: susur sungai, kolam alami, dan saung lesehan di tepi air.',
+    points: [[474,456],[488,462],[510,474],[522,482],[552,488],[568,504],[584,520],[600,536],[616,548],[616,668],[592,682],[560,700],[536,714],[515,729],[480,709],[448,690],[416,672],[380,651],[344,632],[344,566],[370,552],[384,540],[400,530],[420,520],[440,512],[448,500],[450,480],[460,468]],
+    labelAnchor: [528, 586]
+  },
+  {
+    id: 'homestay', number: 3, kind: 'zone', color: '#D8462F',
+    name: 'Homestays & Village Houses',
+    nameId: 'Homestay & Pemukiman Warga',
+    short: 'Homestay Warga',
+    blurb: 'Rumah panggung warga yang dibuka sebagai homestay. Rasakan keseharian kampung Sunda dan sarapan khas buatan ambu.',
+    points: [[340,346],[365,335],[380,315],[388,290],[392,258],[372,232],[350,215],[330,190],[318,158],[340,142],[372,150],[408,140],[430,118],[456,100],[500,96],[540,100],[580,92],[620,96],[620,205],[615,232],[640,240],[655,256],[632,265],[625,290],[640,305],[632,315],[620,322],[582,332],[575,345],[565,355],[590,370],[600,385],[598,398],[625,405],[632,428],[624,445],[624,465],[605,472],[586,464],[562,456],[546,448],[530,440],[520,432],[470,422],[452,410],[440,398],[428,386],[410,376],[392,366],[376,350]],
+    labelAnchor: [482, 300]
+  },
+  {
+    id: 'kerajinan', number: 4, kind: 'zone', color: '#E9A21B',
+    name: 'Crafts Hall & Culture Studio',
+    nameId: 'Balai Kerajinan & Sanggar Budaya',
+    short: 'Balai Kerajinan',
+    blurb: 'Sepanjang jalur sungai dan jembatan kayu: sanggar anyaman bambu, seni calung, dan galeri kerajinan Cililin.',
+    points: [[340,346],[376,350],[392,366],[410,376],[428,386],[440,398],[452,410],[470,422],[520,432],[530,440],[546,448],[562,456],[586,464],[605,472],[624,465],[624,445],[632,428],[625,405],[668,428],[712,438],[716,460],[720,500],[744,508],[768,520],[768,585],[752,594],[720,612],[680,633],[650,650],[616,668],[616,548],[600,536],[584,520],[568,504],[552,488],[522,482],[510,474],[488,462],[474,456],[466,446],[456,436],[446,422],[430,410],[398,400],[390,386],[330,378],[300,372],[320,360]],
+    labelAnchor: [690, 500]
+  },
+  {
+    id: 'kuliner', number: 5, kind: 'zone', color: '#3D9A3F',
+    name: 'Culinary & Local Stalls',
+    nameId: 'Area Kuliner & Warung Lokal',
+    short: 'Kuliner Lokal',
+    blurb: 'Deretan warung di bawah rindang pepohonan: nasi liwet, surabi oncom, bandrek hangat, dan oleh-oleh khas Cililin.',
+    points: [[620,96],[660,98],[704,114],[736,136],[760,176],[800,190],[812,206],[826,224],[840,242],[872,262],[890,280],[904,296],[926,306],[938,326],[956,338],[966,352],[964,470],[920,496],[880,520],[848,537],[808,560],[768,585],[768,520],[744,508],[720,500],[716,460],[712,438],[668,428],[625,405],[598,398],[600,385],[590,370],[565,355],[575,345],[582,332],[620,322],[632,315],[640,305],[625,290],[632,265],[655,256],[640,240],[615,232],[620,205]],
+    labelAnchor: [850, 322]
+  },
+  {
+    id: 'akses-cililin', number: 6, kind: 'tab', color: '#1F8FB3',
+    name: 'Access from Cililin',
+    nameId: 'Akses dari Cililin',
+    short: 'Akses Cililin',
+    pillText: 'Cililin',
+    blurb: 'Gerbang selatan dari arah Kecamatan Cililin. Titik turun angkot, ojek wisata, dan pos informasi pengunjung.',
+    points: [[600,678],[648,651],[698,679],[650,706]],
+    labelAnchor: [676, 728]
+  },
+  {
+    id: 'akses-bandung', number: 7, kind: 'tab', color: '#3557C5',
+    name: 'Access from Bandung',
+    nameId: 'Akses dari Bandung',
+    short: 'Akses Bandung',
+    pillText: 'Bandung',
+    blurb: 'Gerbang utama dari arah Bandung dan Padalarang, dilengkapi area parkir kendaraan dan halte shuttle desa.',
+    points: [[884,517],[932,490],[972,512],[924,539]],
+    labelAnchor: [978, 541]
+  }
+];
+
+/* =====================================================================
+ * POIS — titik minat. Jumlah per zona/kategori dihitung dari data ini.
+ * type: foto | saung | toilet | parkir | info | trekking | sanggar | homestay | kuliner | kerajinan
+ * ===================================================================== */
+const POIS = [
+  // 1 · Trekking & Sawah Terasering Atas
+  { region: 'sawah-atas', name: 'Gerbang Jalur Trekking Pasir Luhur', type: 'trekking', services: ['Trekking', 'Fasilitas Umum'], tag: 'Pintu masuk utara', description: 'Titik awal jalur trekking 3,2 km mengelilingi terasering. Tersedia peta jalur dan tongkat pinjaman.', x: 312, y: 394 },
+  { region: 'sawah-atas', name: 'Sawah Terasering Spot Sunset', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Pasir Sawah Luhur', description: 'Undakan sawah menghadap barat, paling indah sekitar pukul 17.15 saat langit berubah jingga.', x: 214, y: 330 },
+  { region: 'sawah-atas', name: 'Puncak Pematang Batulayang', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Puncak terasering', description: 'Titik tertinggi terasering dengan panorama Gunung Lagadar dan hamparan sawah di bawahnya.', x: 292, y: 208 },
+  { region: 'sawah-atas', name: 'Saung Lesehan Pematang', type: 'saung', services: ['Kuliner', 'Spot Foto'], tag: 'Teras sawah tengah', description: 'Saung bambu untuk beristirahat sambil menikmati kopi Cililin dan pisang goreng.', x: 150, y: 400 },
+  { region: 'sawah-atas', name: 'Gazebo Pandang Terasering', type: 'foto', services: ['Spot Foto'], tag: 'Tepi barat', description: 'Gazebo kayu di bibir terasering, favorit untuk foto prewedding dan keluarga.', x: 118, y: 350 },
+  { region: 'sawah-atas', name: 'Toilet & Mushola Jalur Atas', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Pos istirahat 1', description: 'Toilet bersih dan mushola kecil di tengah jalur trekking. Air dari mata air setempat.', x: 252, y: 272 },
+  { region: 'sawah-atas', name: 'Pos Pandu Trekking', type: 'info', services: ['Trekking', 'Fasilitas Umum'], tag: 'Pertigaan jalur', description: 'Pemandu lokal siap menemani trekking berkelompok. Pesan minimal sehari sebelumnya.', x: 272, y: 452 },
+  { region: 'sawah-atas', name: 'Jalur Trekking Leuwi Batu', type: 'trekking', services: ['Trekking'], tag: 'Jalur biru', description: 'Jalur setapak berbatu menuruni terasering menuju aliran sungai. Tingkat kesulitan sedang.', x: 352, y: 472 },
+  { region: 'sawah-atas', name: 'Jembatan Bambu Pematang', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Jalur biru bawah', description: 'Jembatan bambu kecil melintasi saluran irigasi, latar foto yang khas pedesaan.', x: 402, y: 506 },
+  { region: 'sawah-atas', name: 'Camping Ground Saung Tengah', type: 'saung', services: ['Trekking', 'Homestay'], tag: 'Lahan datar tengah', description: 'Area berkemah untuk 15 tenda, lengkap dengan saung, api unggun, dan sewa perlengkapan.', x: 396, y: 442 },
+
+  // 2 · Area Sawah Terasering Bawah & Alur Sungai
+  { region: 'sawah-bawah', name: 'Alur Sungai Cihaur', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Hilir terasering', description: 'Aliran sungai jernih berbatu yang membelah terasering bawah. Sejuk untuk bermain air.', x: 470, y: 612 },
+  { region: 'sawah-bawah', name: 'Leuwi Seuseupan (Kolam Alami)', type: 'foto', services: ['Spot Foto'], tag: 'Kolam alami', description: 'Lubuk sungai yang tenang dengan air kehijauan, cocok untuk berendam kaki.', x: 522, y: 642 },
+  { region: 'sawah-bawah', name: 'Saung Lesehan Pinggir Sungai', type: 'saung', services: ['Kuliner'], tag: 'Tepi sungai', description: 'Makan siang lesehan dengan ikan bakar kolam dan sambal dadak di tepi aliran sungai.', x: 566, y: 576 },
+  { region: 'sawah-bawah', name: 'Jalur Susur Sungai', type: 'trekking', services: ['Trekking'], tag: 'Jalur sungai', description: 'Susur sungai sepanjang 1 km bersama pemandu, melewati batuan dan kebun bambu.', x: 500, y: 546 },
+  { region: 'sawah-bawah', name: 'Sawah Terasering Bawah', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Teras bawah', description: 'Petak sawah bertingkat yang menghijau di musim tanam dan menguning jelang panen.', x: 410, y: 586 },
+  { region: 'sawah-bawah', name: 'Toilet Umum Leuwi', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Dekat kolam', description: 'Toilet dan ruang bilas untuk pengunjung yang bermain air di sungai.', x: 592, y: 620 },
+  { region: 'sawah-bawah', name: 'Kincir Bambu Ngagugulung', type: 'foto', services: ['Spot Foto'], tag: 'Saluran irigasi', description: 'Kincir air bambu tradisional yang mengalirkan air ke sawah, ikon foto terasering bawah.', x: 536, y: 508 },
+
+  // 3 · Homestay & Pemukiman Warga
+  { region: 'homestay', name: 'Homestay Saung Bambu', type: 'homestay', services: ['Homestay'], tag: 'RT 02 · Blok Luhur', description: 'Rumah panggung bambu dua kamar dengan teras menghadap sawah. Termasuk sarapan nasi liwet.', x: 372, y: 202 },
+  { region: 'homestay', name: 'Homestay Abah Ujang', type: 'homestay', services: ['Homestay'], tag: 'RT 02 · Blok Luhur', description: 'Menginap bersama keluarga petani, ikut menanam padi dan memberi makan ikan di kolam.', x: 432, y: 250 },
+  { region: 'homestay', name: 'Homestay Bale Sunda', type: 'homestay', services: ['Homestay'], tag: 'RT 03 · Blok Tengah', description: 'Rumah adat Sunda julang ngapak untuk 4–6 orang, dekat sanggar kesenian.', x: 486, y: 286 },
+  { region: 'homestay', name: 'Homestay Teh Euis', type: 'homestay', services: ['Homestay', 'Kuliner'], tag: 'RT 03 · Blok Tengah', description: 'Homestay bersih dengan kelas memasak masakan Sunda bersama tuan rumah.', x: 536, y: 232 },
+  { region: 'homestay', name: 'Homestay Lembur Kuring', type: 'homestay', services: ['Homestay'], tag: 'RT 04 · Blok Hilir', description: 'Kamar sederhana dan nyaman, cocok untuk rombongan pelajar dan live-in.', x: 426, y: 332 },
+  { region: 'homestay', name: 'Homestay Imah Panggung', type: 'homestay', services: ['Homestay'], tag: 'RT 04 · Blok Hilir', description: 'Rumah panggung kayu dengan kolong untuk bersantai, dekat jalur menuju sungai.', x: 506, y: 346 },
+  { region: 'homestay', name: 'Homestay Pinggir Sawah', type: 'homestay', services: ['Homestay', 'Spot Foto'], tag: 'Dekat pematang', description: 'Bangun pagi langsung disambut kabut tipis di atas terasering.', x: 404, y: 296 },
+  { region: 'homestay', name: 'Warung Kopi Abah Odon', type: 'kuliner', services: ['Kuliner'], tag: 'Jalan kampung', description: 'Kopi tubruk robusta Cililin dan gorengan hangat, tempat warga berkumpul sore hari.', x: 590, y: 272 },
+  { region: 'homestay', name: 'Pos Informasi Desa Wisata', type: 'info', services: ['Fasilitas Umum'], tag: 'Balai desa', description: 'Pemesanan homestay, paket wisata, dan pemandu. Buka setiap hari 07.00–17.00.', x: 586, y: 426 },
+  { region: 'homestay', name: 'Area Parkir Pemukiman', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Lapangan RW', description: 'Parkir motor dan mobil kecil untuk tamu homestay. Dijaga pemuda setempat.', x: 540, y: 396 },
+  { region: 'homestay', name: 'Mushola Al-Ikhlas', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Tengah kampung', description: 'Mushola warga dengan tempat wudu dan toilet umum yang terawat.', x: 470, y: 396 },
+  { region: 'homestay', name: 'Gapura Selamat Datang Batulayang', type: 'foto', services: ['Spot Foto'], tag: 'Ujung kampung', description: 'Gapura kayu berukir dengan papan nama desa, spot foto pertama para pengunjung.', x: 556, y: 182 },
+
+  // 4 · Balai Kerajinan & Sanggar Budaya
+  { region: 'kerajinan', name: 'Sanggar Anyaman Bambu', type: 'kerajinan', services: ['Kerajinan'], tag: 'Jalur sungai timur', description: 'Belajar menganyam boboko, nyiru, dan tas bambu bersama perajin. Sesi 90 menit.', x: 650, y: 506 },
+  { region: 'kerajinan', name: 'Balai Kerajinan Batulayang', type: 'kerajinan', services: ['Kerajinan', 'Fasilitas Umum'], tag: 'Bawah bale riung', description: 'Galeri dan toko hasil kerajinan warga: anyaman, ukiran kayu, dan batik tulis.', x: 690, y: 476 },
+  { region: 'kerajinan', name: 'Sanggar Seni Calung & Angklung', type: 'sanggar', services: ['Kerajinan', 'Spot Foto'], tag: 'Dekat jembatan', description: 'Latihan dan pertunjukan calung setiap Sabtu sore. Pengunjung boleh ikut bermain.', x: 612, y: 526 },
+  { region: 'kerajinan', name: 'Jembatan Kayu Cihaur', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Penyeberangan sungai', description: 'Jembatan kayu melengkung di atas sungai, menghubungkan kampung dengan area kuliner.', x: 630, y: 550 },
+  { region: 'kerajinan', name: 'Galeri Batik Cililin', type: 'kerajinan', services: ['Kerajinan'], tag: 'Jalur sungai tengah', description: 'Batik tulis bermotif padi dan bambu khas Batulayang. Tersedia kelas membatik singkat.', x: 498, y: 441 },
+  { region: 'kerajinan', name: 'Padepokan Wayang Golek', type: 'sanggar', services: ['Kerajinan'], tag: 'Jalur sungai barat', description: 'Melihat proses membuat wayang golek dan menonton pentas mini dalang muda.', x: 414, y: 393 },
+  { region: 'kerajinan', name: 'Toilet & Mushola Balai', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Belakang galeri', description: 'Fasilitas toilet dan mushola untuk pengunjung balai dan sanggar.', x: 706, y: 532 },
+
+  // 5 · Area Kuliner & Warung Lokal
+  { region: 'kuliner', name: 'Warung Liwet Cililin', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Nasi liwet kastrol dengan ikan asin, sambal terasi, dan lalapan segar dari kebun.', x: 790, y: 432 },
+  { region: 'kuliner', name: 'Warung Nasi Timbel Ambu', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Nasi timbel bungkus daun pisang, ayam goreng kampung, dan sayur asem.', x: 860, y: 416 },
+  { region: 'kuliner', name: 'Kedai Bandrek & Bajigur', type: 'kuliner', services: ['Kuliner'], tag: 'Ujung lorong', description: 'Minuman jahe hangat dan bajigur gula aren, pas untuk udara sejuk Batulayang.', x: 830, y: 374 },
+  { region: 'kuliner', name: 'Saung Lesehan Kuliner', type: 'saung', services: ['Kuliner'], tag: 'Taman makan', description: 'Area makan lesehan bersama di bawah pepohonan rindang, muat 40 orang.', x: 766, y: 472 },
+  { region: 'kuliner', name: 'Warung Surabi Oncom', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Surabi tungku tanah liat dengan topping oncom pedas atau kinca gula merah.', x: 904, y: 442 },
+  { region: 'kuliner', name: 'Pusat Oleh-oleh Opak & Ranginang', type: 'kuliner', services: ['Kuliner', 'Kerajinan'], tag: 'Pintu keluar', description: 'Opak, ranginang, dan dodol buatan ibu-ibu PKK, dikemas dalam besek bambu.', x: 846, y: 492 },
+  { region: 'kuliner', name: 'Area Parkir Kuliner', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Sisi timur', description: 'Parkir untuk 30 motor dan 12 mobil, dekat dengan akses dari Bandung.', x: 900, y: 482 },
+  { region: 'kuliner', name: 'Toilet & Mushola Kuliner', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Sisi timur', description: 'Toilet, wastafel, dan mushola yang dekat dengan deretan warung.', x: 934, y: 396 },
+  { region: 'kuliner', name: 'Spot Foto Hutan Pinus', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Hutan belakang', description: 'Jalan setapak di antara pinus dan palem dengan cahaya pagi yang menembus kanopi.', x: 722, y: 192 },
+  { region: 'kuliner', name: 'Bale Riung Warga', type: 'info', services: ['Fasilitas Umum', 'Kerajinan'], tag: 'Pusat komunitas', description: 'Pendopo tempat musyawarah, pentas budaya, dan titik kumpul rombongan wisata.', x: 700, y: 322 },
+
+  // 6 · Akses dari Cililin
+  { region: 'akses-cililin', name: 'Terminal Angkot Cililin', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Gerbang selatan', description: 'Titik turun angkot jurusan Cililin–Batulayang. Beroperasi 05.30–18.00.', x: 628, y: 677 },
+  { region: 'akses-cililin', name: 'Pos Informasi Gerbang Selatan', type: 'info', services: ['Fasilitas Umum'], tag: 'Gerbang selatan', description: 'Peta cetak, tiket paket wisata, dan penitipan barang untuk pengunjung.', x: 652, y: 668 },
+  { region: 'akses-cililin', name: 'Pangkalan Ojek Wisata', type: 'parkir', services: ['Fasilitas Umum', 'Trekking'], tag: 'Gerbang selatan', description: 'Ojek warga untuk mengantar ke titik awal trekking dan homestay.', x: 668, y: 688 },
+
+  // 7 · Akses dari Bandung
+  { region: 'akses-bandung', name: 'Gerbang Utama Batulayang', type: 'info', services: ['Fasilitas Umum', 'Spot Foto'], tag: 'Gerbang timur', description: 'Gerbang utama dari arah Bandung–Padalarang dengan papan selamat datang.', x: 912, y: 512 },
+  { region: 'akses-bandung', name: 'Parkir Bus & Mobil Pengunjung', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Gerbang timur', description: 'Parkir luas untuk bus pariwisata dan mobil pribadi, dijaga 24 jam.', x: 932, y: 504 },
+  { region: 'akses-bandung', name: 'Halte Shuttle Desa Wisata', type: 'info', services: ['Fasilitas Umum'], tag: 'Gerbang timur', description: 'Shuttle gratis keliling desa setiap 30 menit pada akhir pekan.', x: 940, y: 522 }
+];
+
+/* Elemen langit (awan) yang dipotong menjadi layer sendiri. */
+const SKY = [
+  { id: 'awan-1', drift: 'bob', patch: null, points: [[360,72],[368,56],[390,46],[420,44],[446,50],[466,62],[472,80],[456,94],[410,96],[372,92]] },
+  { id: 'awan-2', drift: 'drift', patch: '#41ADED', points: [[712,98],[716,86],[730,78],[750,80],[760,92],[756,102],[730,104]] },
+  { id: 'awan-3', drift: 'drift', patch: '#44AFEF', points: [[760,114],[770,92],[796,80],[822,62],[862,56],[892,70],[902,94],[926,104],[942,126],[936,152],[892,158],[856,150],[838,132],[798,130],[768,128]] },
+  { id: 'awan-4', drift: 'drift', patch: '#5BC1F2', points: [[60,280],[64,264],[84,254],[112,250],[136,258],[146,276],[138,288],[92,289],[66,288]] }
+];
+
+const SERVICES = ['Trekking', 'Homestay', 'Kuliner', 'Kerajinan', 'Spot Foto', 'Fasilitas Umum'];
+const CATEGORIES = [
+  { id: 'Trekking', icon: 'ic-trekking' },
+  { id: 'Homestay', icon: 'ic-homestay' },
+  { id: 'Kuliner', icon: 'ic-kuliner' },
+  { id: 'Kerajinan', icon: 'ic-kerajinan' }
+];
+const POI_TYPES = {
+  foto: { label: 'Spot Foto', icon: 'ic-foto' },
+  saung: { label: 'Saung Lesehan', icon: 'ic-saung' },
+  toilet: { label: 'Toilet & Mushola', icon: 'ic-toilet' },
+  parkir: { label: 'Area Parkir', icon: 'ic-parkir' },
+  info: { label: 'Pos Informasi', icon: 'ic-info' },
+  trekking: { label: 'Jalur Trekking', icon: 'ic-trekking' },
+  sanggar: { label: 'Sanggar Seni', icon: 'ic-sanggar' },
+  homestay: { label: 'Homestay', icon: 'ic-homestay' },
+  kuliner: { label: 'Kuliner', icon: 'ic-kuliner' },
+  kerajinan: { label: 'Kerajinan', icon: 'ic-kerajinan' }
+};
+const STRIP_TYPES = ['foto', 'saung', 'toilet', 'parkir', 'info', 'trekking', 'sanggar'];
+
+/* ===================================================================== */
+
+const NS = 'http://www.w3.org/2000/svg';
+const $ = (s, r = document) => r.querySelector(s);
+const root = document.documentElement;
+const svg = $('#map');
+const frame = $('#map-frame');
+const stage = $('#stage');
+const body = $('#peta-body');
+const panel = $('#panel');
+const tooltip = $('#tooltip');
+const pop = $('#poi-pop');
+const backFloat = $('#back-float');
+const live = $('#live');
+const searchInput = $('#poi-search');
+const sheetMQ = matchMedia('(max-width: 759px)');
+const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)');
+
+const byId = Object.fromEntries(REGIONS.map(r => [r.id, r]));
+const regionEls = {};
+const pinEls = [];
+const listEls = [];
+const legendEls = {};
+const railEls = {};
+const chipEls = {};
+
+const state = {
+  hover: null, selected: null, category: null,
+  chips: new Set(), search: '',
+  hlPoi: null, popPoi: null,
+  edit: false, loaded: false,
+  cam: { s: 1, tx: 0, ty: 0 },
+  vb: { w: COORD_SPACE.w, h: COORD_SPACE.h }, sx: 1, sy: 1
+};
+let camera, space, zonesG, pinsG, hitsG, socketsG;
+
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  if (attrs) for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function h(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+function iconSvg(id, cls = 'ico') {
+  return `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const ptsAttr = pts => pts.map(p => p[0] + ',' + p[1]).join(' ');
+const isLight = hex => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 165; };
+function mix(hex, to, t) {
+  const a = parseInt(hex.slice(1), 16), b = parseInt(to.slice(1), 16);
+  const c = [16, 8, 0].map(s => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t));
+  return '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function pointInPolygon([x, y], poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function centroid(pts) {
+  let a = 0, cx = 0, cy = 0;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const f = pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1];
+    a += f; cx += (pts[j][0] + pts[i][0]) * f; cy += (pts[j][1] + pts[i][1]) * f;
+  }
+  return a ? [cx / (3 * a), cy / (3 * a)] : pts[0];
+}
+function bbox(pts) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  return { x0, y0, x1, y1 };
+}
+/* Poligon klip sedikit diperbesar agar tidak ada garis celah anti-alias di antara zona. */
+function offsetPolygon(pts, d) {
+  let area = 0;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) area += pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1];
+  const sign = area > 0 ? 1 : -1;
+  const n = pts.length;
+  const normal = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [sign * dy / l, -sign * dx / l]; };
+  return pts.map((p, i) => {
+    const n1 = normal(pts[(i - 1 + n) % n], p), n2 = normal(p, pts[(i + 1) % n]);
+    let mx = n1[0] + n2[0], my = n1[1] + n2[1];
+    const ml = Math.hypot(mx, my) || 1; mx /= ml; my /= ml;
+    const k = d / Math.max(.35, mx * n1[0] + my * n1[1]);
+    return [+(p[0] + mx * k).toFixed(2), +(p[1] + my * k).toFixed(2)];
+  });
+}
+
+/* ---------- Derived data ---------- */
+const poiMatchesCategory = p => !state.category || p.services.includes(state.category);
+function countFor(regionId) { return POIS.filter(p => p.region === regionId && poiMatchesCategory(p)).length; }
+function totalFor(regionId) { return POIS.filter(p => p.region === regionId).length; }
+function visiblePoiIdx(regionId) {
+  const q = state.search.trim().toLowerCase();
+  const out = [];
+  POIS.forEach((p, i) => {
+    if (p.region !== regionId) return;
+    if (!poiMatchesCategory(p)) return;
+    if (state.chips.size && !p.services.some(s => state.chips.has(s))) return;
+    if (q && !p.name.toLowerCase().includes(q)) return;
+    out.push(i);
+  });
+  return out;
+}
+function spotLabel(n) { return `${n} Spot`; }
+
+/* =====================================================================
+ * Static UI (legend, rail, chips, list, strip)
+ * ===================================================================== */
+function buildLegend() {
+  const list = $('#legend-list');
+  REGIONS.forEach(r => {
+    const li = h('li');
+    const b = h('button', 'lg-item');
+    b.type = 'button';
+    b.style.setProperty('--c', r.color);
+    b.innerHTML = `<span class="num-badge${isLight(r.color) ? ' on-light' : ''}" style="--c:${r.color}">${r.number}</span>
+      <span class="lg-text"><strong>${esc(r.nameId)}</strong><span class="lg-count"></span></span>`;
+    b.addEventListener('pointerenter', () => setHover(r.id, 'legend'));
+    b.addEventListener('pointerleave', () => setHover(null, 'legend'));
+    b.addEventListener('focus', () => setHover(r.id, 'legend'));
+    b.addEventListener('blur', () => setHover(null, 'legend'));
+    b.addEventListener('click', () => select(r.id));
+    li.appendChild(b); list.appendChild(li);
+    legendEls[r.id] = b;
+  });
+}
+function buildRail() {
+  const wrap = $('#rail-list');
+  CATEGORIES.forEach(c => {
+    const b = h('button', 'cat');
+    b.type = 'button';
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<span class="cat-ico">${iconSvg(c.icon)}</span><span class="cat-label">${c.id}</span><span class="cat-count">0</span>`;
+    b.addEventListener('click', () => setCategory(state.category === c.id ? null : c.id));
+    wrap.appendChild(b);
+    railEls[c.id] = b;
+  });
+}
+function buildChips() {
+  const wrap = $('#chips');
+  SERVICES.forEach(s => {
+    const b = h('button', 'chip', s);
+    b.type = 'button';
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      if (state.chips.has(s)) state.chips.delete(s); else state.chips.add(s);
+      b.setAttribute('aria-pressed', String(state.chips.has(s)));
+      refreshFilters();
+    });
+    wrap.appendChild(b);
+    chipEls[s] = b;
+  });
+}
+function buildList() {
+  const ul = $('#poi-list');
+  POIS.forEach((p, i) => {
+    const r = byId[p.region];
+    const t = POI_TYPES[p.type] || POI_TYPES.info;
+    const li = h('li', 'poi-item');
+    li.hidden = true;
+    li.innerHTML = `<button type="button" class="poi-btn">
+        <span class="poi-ico" style="background:${r.color}">${iconSvg(t.icon, '')}</span>
+        <span class="poi-main">
+          <span class="poi-name">${esc(p.name)}</span>
+          <span class="poi-meta">${esc(t.label)} · ${esc(p.tag)}</span>
+          <span class="poi-desc">${esc(p.description)}</span>
+        </span>
+      </button>`;
+    const btn = li.firstElementChild;
+    btn.addEventListener('pointerenter', () => setPoiHl(i));
+    btn.addEventListener('pointerleave', () => setPoiHl(null));
+    btn.addEventListener('focus', () => setPoiHl(i));
+    btn.addEventListener('blur', () => setPoiHl(null));
+    btn.addEventListener('click', () => openPopover(i, btn));
+    ul.appendChild(li);
+    listEls[i] = li;
+  });
+  const empty = h('li', 'poi-empty', 'Tidak ada spot yang cocok dengan pencarian atau filter.');
+  empty.id = 'poi-empty';
+  empty.hidden = true;
+  ul.appendChild(empty);
+}
+function buildStrip() {
+  const ul = $('#strip-list');
+  STRIP_TYPES.forEach(k => {
+    const t = POI_TYPES[k];
+    const li = h('li');
+    li.innerHTML = `<span class="strip-ico">${iconSvg(t.icon, '')}</span>${esc(t.label)}`;
+    ul.appendChild(li);
+  });
+}
+
+/* =====================================================================
+ * SVG map (built once after the PNG is loaded)
+ * ===================================================================== */
+function buildMap(natW, natH) {
+  const { w: CW, h: CH } = COORD_SPACE;
+  state.vb = { w: natW, h: natH };
+  state.sx = natW / CW;
+  state.sy = natH / CH;
+  svg.setAttribute('viewBox', `0 0 ${natW} ${natH}`);
+  frame.style.aspectRatio = `${natW} / ${natH}`;
+
+  const defs = el('defs', null, svg);
+  defs.innerHTML = `
+    <filter id="f-socket" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feColorMatrix type="saturate" values="0.3"/>
+      <feComponentTransfer><feFuncR type="linear" slope="0.55"/><feFuncG type="linear" slope="0.58"/><feFuncB type="linear" slope="0.62"/></feComponentTransfer>
+    </filter>
+    <filter id="f-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="f-feather" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.5"/></filter>
+    <filter id="f-badge" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity=".3"/></filter>`;
+
+  camera = el('g', { id: 'camera' }, svg);
+  space = el('g', { id: 'space', transform: `scale(${state.sx} ${state.sy})` }, camera);
+  const imgAttrs = extra => Object.assign({ href: MAP_IMAGE_URL, x: 0, y: 0, width: CW, height: CH, preserveAspectRatio: 'none' }, extra);
+
+  const mask = el('mask', { id: 'm-backdrop', maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: CW, height: CH }, defs);
+  el('rect', { x: 0, y: 0, width: CW, height: CH, fill: '#fff' }, mask);
+
+  REGIONS.forEach(r => {
+    const poly = el('polygon', { id: `rp-${r.id}`, points: ptsAttr(r.points) }, defs);
+    const els = regionEls[r.id] = { poly };
+    if (r.kind === 'zone') {
+      const cp = el('clipPath', { id: `clip-${r.id}`, clipPathUnits: 'userSpaceOnUse' }, defs);
+      els.clipPoly = el('polygon', { points: ptsAttr(offsetPolygon(r.points, .9)) }, cp);
+      el('use', { href: `#rp-${r.id}`, fill: '#000' }, mask);
+    }
+  });
+
+  // a) Base "socket" layer: dimmed + desaturated
+  el('image', imgAttrs({ class: 'base', filter: 'url(#f-socket)', 'aria-hidden': 'true' }), space);
+  // Backdrop: full-brightness artwork outside the zones (sky, mountain, labels)
+  el('image', imgAttrs({ class: 'backdrop', mask: 'url(#m-backdrop)', 'aria-hidden': 'true' }), space);
+
+  // Sky layers
+  const sky = el('g', { id: 'sky', 'aria-hidden': 'true' }, space);
+  SKY.forEach(c => {
+    if (c.patch) el('polygon', { points: ptsAttr(c.points), fill: c.patch, filter: 'url(#f-feather)' }, sky);
+    const m = el('mask', { id: `m-${c.id}`, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: CW, height: CH }, defs);
+    el('polygon', { points: ptsAttr(c.points), fill: '#fff', filter: 'url(#f-feather)' }, m);
+    const g = el('g', { class: 'cloud', 'data-drift': c.drift }, sky);
+    el('image', imgAttrs({ mask: `url(#m-${c.id})` }), g);
+  });
+
+  socketsG = el('g', { id: 'sockets', 'aria-hidden': 'true' }, space);
+  zonesG = el('g', { id: 'zones' }, space);
+  hitsG = el('g', { id: 'hits' }, space);
+  pinsG = el('g', { id: 'pins' }, space);
+
+  REGIONS.forEach(r => {
+    const els = regionEls[r.id];
+    els.socket = el('use', { href: `#rp-${r.id}`, class: 'socket', fill: '#06140f' }, socketsG);
+
+    const g = el('g', { class: 'zone', 'data-id': r.id, 'aria-hidden': 'true' }, zonesG);
+    els.zone = g;
+    el('use', { href: `#rp-${r.id}`, class: 'zone-shadow', transform: 'translate(3 14)', fill: '#0b2620', filter: 'url(#f-soft)' }, g);
+
+    if (r.kind === 'zone') {
+      el('image', imgAttrs({ 'clip-path': `url(#clip-${r.id})` }), g);
+      const b = el('g', { class: 'badge', transform: `translate(${r.labelAnchor[0]} ${r.labelAnchor[1]})` }, g);
+      const bs = el('g', { class: 'badge-scale' }, b);
+      el('circle', { r: 14, fill: r.color, stroke: '#fff', 'stroke-width': 3, filter: 'url(#f-badge)' }, bs);
+      const t = el('text', { class: 'badge-num', 'text-anchor': 'middle', dy: '.36em', 'font-size': 14, fill: isLight(r.color) ? '#3b2a00' : '#fff' }, bs);
+      t.textContent = r.number;
+      els.badge = b;
+    } else {
+      el('use', { href: `#rp-${r.id}`, transform: 'translate(0 8)', fill: mix(r.color, '#123', .35) }, g);
+      el('use', { href: `#rp-${r.id}`, fill: mix(r.color, '#ffffff', .78), stroke: '#fff', 'stroke-width': 2, 'stroke-linejoin': 'round' }, g);
+      els.decor = el('g', { 'pointer-events': 'none' }, g);
+      els.pill = el('g', { class: 'pill' }, g);
+      renderTabDecor(r);
+      renderPill(r);
+    }
+
+    const hit = el('use', {
+      href: `#rp-${r.id}`, class: 'hit', 'data-id': r.id, tabindex: 0, role: 'button',
+      'aria-label': `Zona ${r.number}: ${r.nameId}, ${totalFor(r.id)} spot. Tekan Enter untuk membuka.`
+    }, hitsG);
+    els.hit = hit;
+    if (r.kind === 'tab') {
+      els.pillHit = el('rect', { class: 'hit', 'data-id': r.id, rx: 12, 'aria-hidden': 'true' }, hitsG);
+      placePillHit(r);
+    }
+  });
+
+  POIS.forEach((p, i) => {
+    const r = byId[p.region];
+    nudgeInside(p, r);
+    const t = POI_TYPES[p.type] || POI_TYPES.info;
+    const g = el('g', { class: 'pin', 'data-i': i, transform: `translate(${p.x} ${p.y})`, tabindex: -1, role: 'button', 'aria-label': `${p.name} (${t.label})` }, pinsG);
+    const sc = el('g', { class: 'pin-scale' }, g);
+    const dr = el('g', { class: 'pin-drop' }, sc);
+    const bd = el('g', { class: 'pin-body' }, dr);
+    el('ellipse', { cx: 0, cy: 0, rx: 7, ry: 2.6, fill: 'rgba(0,0,0,.32)' }, bd);
+    el('circle', { class: 'pin-ring', cx: 0, cy: -21, r: 18, fill: 'none', stroke: r.color, 'stroke-width': 3, 'stroke-opacity': '.45' }, bd);
+    el('path', { class: 'pin-head', d: 'M0 0C-2.6-5.6-12-11.4-12-21a12 12 0 1 1 24 0c0 9.6-9.4 15.4-12 21z', fill: r.color, stroke: '#fff', 'stroke-width': 2.2 }, bd);
+    el('use', { href: `#${t.icon}`, x: -7.5, y: -28.5, width: 15, height: 15, color: '#fff' }, bd);
+    pinEls[i] = g;
+  });
+
+  bindMapEvents();
+}
+
+function nudgeInside(p, r) {
+  if (pointInPolygon([p.x, p.y], r.points)) return;
+  const target = pointInPolygon(r.labelAnchor, r.points) ? r.labelAnchor : centroid(r.points);
+  for (let t = .05; t <= 1.0001; t += .05) {
+    const q = [p.x + (target[0] - p.x) * t, p.y + (target[1] - p.y) * t];
+    if (pointInPolygon(q, r.points)) { p.x = Math.round(q[0]); p.y = Math.round(q[1]); return; }
+  }
+}
+
+function renderTabDecor(r) {
+  const g = regionEls[r.id].decor;
+  g.textContent = '';
+  const p = r.points;
+  if (p.length < 4) return;
+  const a = [(p[0][0] + p[1][0]) / 2, (p[0][1] + p[1][1]) / 2];
+  const b = [(p[2][0] + p[3][0]) / 2, (p[2][1] + p[3][1]) / 2];
+  el('line', { x1: b[0], y1: b[1], x2: a[0], y2: a[1], stroke: r.color, 'stroke-width': 2.5, 'stroke-dasharray': '6 5', 'stroke-linecap': 'round', opacity: .8 }, g);
+  const dx = a[0] - b[0], dy = a[1] - b[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+  const tip = [a[0] - ux * 8, a[1] - uy * 8];
+  const back = [tip[0] - ux * 11, tip[1] - uy * 11];
+  el('path', { d: `M${back[0] - uy * 7} ${back[1] + ux * 7}L${tip[0]} ${tip[1]}L${back[0] + uy * 7} ${back[1] - ux * 7}`, fill: 'none', stroke: r.color, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+}
+function pillGeom(r) {
+  const label = `${r.number} · ${r.pillText || r.short}`;
+  const w = Math.round(34 + (r.pillText || r.short).length * 6.9);
+  const x = clamp(r.labelAnchor[0], w / 2 + 4, COORD_SPACE.w - w / 2 - 4);
+  const y = clamp(r.labelAnchor[1], 15, COORD_SPACE.h - 15);
+  return { label, w, x, y };
+}
+function renderPill(r) {
+  const g = regionEls[r.id].pill;
+  const { w, x, y } = pillGeom(r);
+  g.textContent = '';
+  g.setAttribute('transform', `translate(${x} ${y})`);
+  el('rect', { x: -w / 2, y: -12, width: w, height: 24, rx: 12, fill: '#fff', stroke: r.color, 'stroke-width': 2, filter: 'url(#f-badge)' }, g);
+  el('circle', { cx: -w / 2 + 12, cy: 0, r: 8.5, fill: r.color }, g);
+  const n = el('text', { class: 'pill-text', x: -w / 2 + 12, dy: '.35em', 'text-anchor': 'middle', 'font-size': 11, fill: '#fff' }, g);
+  n.textContent = r.number;
+  const t = el('text', { class: 'pill-text', x: -w / 2 + 26, dy: '.35em', 'font-size': 12, fill: '#173a33' }, g);
+  t.textContent = r.pillText || r.short;
+}
+function placePillHit(r) {
+  const { w, x, y } = pillGeom(r);
+  const rc = regionEls[r.id].pillHit;
+  rc.setAttribute('x', x - w / 2); rc.setAttribute('y', y - 12);
+  rc.setAttribute('width', w); rc.setAttribute('height', 24);
+}
+
+/* =====================================================================
+ * Hover / lift
+ * ===================================================================== */
+function applyLift() {
+  REGIONS.forEach(r => {
+    const els = regionEls[r.id];
+    if (!els || !els.zone) return;
+    const should = !state.edit && (r.id === state.hover || r.id === state.selected);
+    const is = els.zone.classList.contains('is-lifted');
+    if (should && !is) {
+      zonesG.appendChild(els.zone);
+      getComputedStyle(els.zone).transform;
+      els.zone.classList.add('is-lifted');
+    } else if (!should && is) {
+      els.zone.classList.remove('is-lifted');
+    }
+    els.socket.classList.toggle('on', should);
+    els.hit.setAttribute('aria-pressed', String(r.id === state.selected));
+  });
+  if (state.hover && state.selected && state.hover !== state.selected) {
+    zonesG.appendChild(regionEls[state.hover].zone);
+  }
+  svg.classList.toggle('has-focus', !!state.hover && !state.selected);
+  svg.classList.toggle('has-selection', !!state.selected);
+  REGIONS.forEach(r => legendEls[r.id].classList.toggle('is-active', r.id === state.hover || r.id === state.selected));
+}
+
+function setHover(id, source) {
+  if (state.edit || !state.loaded) return;
+  if (state.hover === id) return;
+  state.hover = id;
+  applyLift();
+  if (!id || source === 'legend') hideTooltip();
+}
+
+function tooltipText(r) {
+  const n = countFor(r.id);
+  return `${esc(r.short)} <i>· ${spotLabel(n)}${state.category ? ' ' + esc(state.category) : ''}</i>`;
+}
+function showTooltipAt(r, clientX, clientY) {
+  const sr = stage.getBoundingClientRect();
+  tooltip.innerHTML = tooltipText(r);
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  const x = clamp(clientX - sr.left + 14, 6, sr.width - tw - 6);
+  let y = clientY - sr.top - th - 14;
+  if (y < 6) y = clientY - sr.top + 18;
+  tooltip.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  tooltip.classList.add('on');
+}
+function hideTooltip() { tooltip.classList.remove('on'); }
+function anchorClientPos(r) {
+  const m = space.getScreenCTM();
+  const p = new DOMPoint(r.labelAnchor[0], r.labelAnchor[1]).matrixTransform(m);
+  return [p.x, p.y];
+}
+
+/* =====================================================================
+ * Camera (zoom & pan via CSS transform on #camera)
+ * ===================================================================== */
+const isSheet = () => sheetMQ.matches;
+function setCamera(s, tx, ty) {
+  state.cam = { s, tx, ty };
+  camera.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+  updateScales();
+}
+function updateScales() {
+  if (!camera) return;
+  const k = frame.clientWidth / state.vb.w || 1;
+  const z = k * state.cam.s * state.sx;
+  const pinPx = isSheet() ? 28 : 32;
+  const ps = (pinPx / 34) / z * (state.selected || state.edit ? 1 : .82);
+  svg.style.setProperty('--ps', ps.toFixed(4));
+  svg.style.setProperty('--bs', clamp(1 / z, .55, 1.9).toFixed(4));
+}
+function frameRegion(r) {
+  const { w: W, h: H } = state.vb;
+  const rect = frame.getBoundingClientRect();
+  const k = rect.width / W;
+  let aL = 0, aT = 0, aR = W, aB = H;
+  if (panel.classList.contains('open')) {
+    if (isSheet()) {
+      const usable = window.innerHeight - panel.offsetHeight - 20;
+      aB = clamp(usable / k, 120 / k, H);
+    } else {
+      const bodyR = body.getBoundingClientRect().right;
+      const panelLeft = bodyR - panel.offsetWidth;
+      aR = clamp((panelLeft - 14 - rect.left) / k, W * .35, W);
+    }
+  }
+  const b = bbox(r.points);
+  const pad = 26;
+  const x0 = (b.x0 - pad) * state.sx, x1 = (b.x1 + pad) * state.sx;
+  const y0 = (b.y0 - pad - 12) * state.sy, y1 = (b.y1 + pad) * state.sy;
+  const s = clamp(Math.min((aR - aL) / (x1 - x0), (aB - aT) / (y1 - y0)), 1, 2.8);
+  let tx = (aL + aR) / 2 - s * (x0 + x1) / 2;
+  let ty = (aT + aB) / 2 - s * (y0 + y1) / 2;
+  tx = clamp(tx, aR - s * W, aL);
+  ty = clamp(ty, aB - s * H, aT);
+  setCamera(s, tx, ty);
+}
+function resetCamera() { setCamera(1, 0, 0); }
+
+/* =====================================================================
+ * Select / back
+ * ===================================================================== */
+function select(id, opts = {}) {
+  if (state.edit || !state.loaded) return;
+  const r = byId[id];
+  if (!r) return;
+  const switching = state.selected && state.selected !== id;
+  if (state.selected === id && !opts.force) return;
+  state.selected = id;
+  closePopover();
+  hideTooltip();
+  state.search = '';
+  searchInput.value = '';
+
+  const badge = $('#panel-badge');
+  badge.textContent = r.number;
+  badge.style.setProperty('--c', r.color);
+  badge.classList.toggle('on-light', isLight(r.color));
+  $('#panel-num').textContent = r.number;
+  $('#panel-title').textContent = r.nameId;
+  $('#panel-blurb').textContent = r.blurb || '';
+
+  openPanel();
+  applyLift();
+  refreshFilters({ restartPins: true, pinDelay: switching ? 120 : 260 });
+  updateRailCounts();
+  backFloat.classList.add('on');
+  backFloat.tabIndex = 0;
+
+  if (isSheet()) frame.scrollIntoView({ block: 'start', behavior: reduceMQ.matches ? 'auto' : 'smooth' });
+  requestAnimationFrame(() => frameRegion(r));
+
+  if (history.replaceState) history.replaceState(null, '', '#zona-' + id);
+  live.textContent = `Zona ${r.number}, ${r.nameId}, dibuka. ${spotLabel(totalFor(id))}.`;
+}
+
+function back() {
+  if (!state.selected) return;
+  const prev = state.selected;
+  state.selected = null;
+  state.hlPoi = null;
+  closePopover();
+  closePanel();
+  applyLift();
+  resetCamera();
+  updatePins({ restart: !!state.category });
+  updateRailCounts();
+  backFloat.classList.remove('on');
+  backFloat.tabIndex = -1;
+  if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+  live.textContent = 'Kembali ke peta lengkap.';
+  const hit = regionEls[prev] && regionEls[prev].hit;
+  if (hit && panel.contains(document.activeElement)) hit.focus({ preventScroll: true });
+}
+
+function openPanel() {
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden', 'false');
+}
+function closePanel() {
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
+}
+
+/* =====================================================================
+ * Filters, list, pins
+ * ===================================================================== */
+function refreshFilters(opts = {}) {
+  const id = state.selected;
+  if (id) {
+    const vis = new Set(visiblePoiIdx(id));
+    POIS.forEach((p, i) => { listEls[i].hidden = !vis.has(i); });
+    $('#poi-empty').hidden = vis.size > 0;
+    const total = totalFor(id);
+    const inCat = countFor(id);
+    $('#panel-count').innerHTML = state.category
+      ? `<strong>${spotLabel(total)}</strong> · ${inCat} untuk ${esc(state.category)}`
+      : `<strong>${spotLabel(total)}</strong> di zona ini`;
+    $('#result-line').textContent = vis.size === total ? `Menampilkan semua ${total} spot` : `Menampilkan ${vis.size} dari ${total} spot`;
+    if (state.popPoi != null && !vis.has(state.popPoi)) closePopover();
+  }
+  SERVICES.forEach(s => chipEls[s].classList.toggle('is-locked', state.category === s && !state.chips.has(s)));
+  if (opts.restartPins) {
+    hidePins();
+    clearTimeout(refreshFilters.t);
+    refreshFilters.t = setTimeout(() => updatePins({ restart: true }), opts.pinDelay || 0);
+  } else {
+    updatePins({ restart: false });
+  }
+}
+
+function pinTargetSet() {
+  if (state.edit) return new Set(POIS.map((_, i) => i));
+  if (state.selected) return new Set(visiblePoiIdx(state.selected));
+  if (state.category) return new Set(POIS.map((p, i) => (p.services.includes(state.category) ? i : -1)).filter(i => i >= 0));
+  return new Set();
+}
+function hidePins() { pinEls.forEach(g => { g.classList.remove('show', 'hl'); g.tabIndex = -1; }); }
+function updatePins({ restart }) {
+  if (!pinsG) return;
+  const target = pinTargetSet();
+  updateScales();
+  if (restart) {
+    hidePins();
+    void svg.getBoundingClientRect();
+  }
+  let order = 0;
+  pinEls.forEach((g, i) => {
+    const on = target.has(i);
+    const was = g.classList.contains('show');
+    if (on && !was) {
+      g.style.setProperty('--d', `${Math.min(order++, 14) * 55}ms`);
+      g.classList.add('show');
+    } else if (!on && was) {
+      g.classList.remove('show', 'hl');
+    }
+    g.tabIndex = on && !state.edit ? 0 : -1;
+  });
+}
+
+function setPoiHl(i, fromPin) {
+  if (state.hlPoi === i) return;
+  if (state.hlPoi != null) {
+    pinEls[state.hlPoi] && pinEls[state.hlPoi].classList.remove('hl');
+    listEls[state.hlPoi] && listEls[state.hlPoi].classList.remove('hl');
+  }
+  state.hlPoi = i;
+  if (i == null) return;
+  const g = pinEls[i];
+  if (g) {
+    g.classList.add('hl');
+    g.parentNode.appendChild(g);
+  }
+  if (listEls[i]) {
+    listEls[i].classList.add('hl');
+    if (fromPin && panel.classList.contains('open') && !listEls[i].hidden) {
+      listEls[i].scrollIntoView({ block: 'nearest', behavior: reduceMQ.matches ? 'auto' : 'smooth' });
+    }
+  }
+}
+
+function setCategory(cat) {
+  state.category = cat;
+  CATEGORIES.forEach(c => railEls[c.id].setAttribute('aria-pressed', String(c.id === cat)));
+  svg.classList.toggle('has-category', !!cat);
+  REGIONS.forEach(r => regionEls[r.id] && regionEls[r.id].zone.classList.toggle('is-served', countFor(r.id) > 0));
+  updateLegendCounts();
+  if (state.selected) refreshFilters();
+  else updatePins({ restart: true });
+  live.textContent = cat
+    ? `Filter kategori ${cat} aktif: ${POIS.filter(p => p.services.includes(cat)).length} spot.`
+    : 'Filter kategori dinonaktifkan.';
+}
+
+function updateLegendCounts() {
+  REGIONS.forEach(r => {
+    const n = countFor(r.id);
+    const b = legendEls[r.id];
+    b.querySelector('.lg-count').textContent = state.category ? `${n} spot ${state.category}` : `${n} spot`;
+    b.classList.toggle('is-muted', !!state.category && n === 0);
+    b.setAttribute('aria-label', `Zona ${r.number}: ${r.nameId}, ${n} spot`);
+  });
+}
+function updateRailCounts() {
+  CATEGORIES.forEach(c => {
+    const n = POIS.filter(p => p.services.includes(c.id) && (!state.selected || p.region === state.selected)).length;
+    railEls[c.id].querySelector('.cat-count').textContent = n;
+    railEls[c.id].setAttribute('aria-label', `${c.id}: ${n} spot${state.selected ? ' di zona ini' : ''}`);
+  });
+}
+
+/* =====================================================================
+ * POI popover
+ * ===================================================================== */
+function openPopover(i, returnFocusEl) {
+  if (state.edit) return;
+  const p = POIS[i];
+  const r = byId[p.region];
+  const t = POI_TYPES[p.type] || POI_TYPES.info;
+  state.popPoi = i;
+  pop.returnFocus = returnFocusEl || pinEls[i];
+  pop.innerHTML = `
+    <button class="pop-close" type="button" aria-label="Tutup">${iconSvg('ic-close', 'ico')}</button>
+    <div class="pop-head">
+      <span class="pop-ico" style="background:${r.color}">${iconSvg(t.icon, 'ico')}</span>
+      <div><p class="pop-kicker">${esc(t.label)} · Zona ${r.number}</p><h3 class="pop-title" id="pop-title">${esc(p.name)}</h3></div>
+    </div>
+    <p class="pop-desc">${esc(p.description)}</p>
+    <div class="pop-tags">${p.services.map(s => `<span>${esc(s)}</span>`).join('')}</div>
+    <p class="pop-loc">${iconSvg('ic-pin', 'ico')}${esc(p.tag)} · ${esc(r.short)}</p>`;
+  pop.querySelector('.pop-close').addEventListener('click', () => closePopover(true));
+  pop.hidden = false;
+  pop.classList.remove('on');
+  positionPopover();
+  requestAnimationFrame(() => pop.classList.add('on'));
+  setPoiHl(i);
+}
+function positionPopover() {
+  if (state.popPoi == null) return;
+  const pin = pinEls[state.popPoi].querySelector('.pin-head');
+  const pr = pin.getBoundingClientRect();
+  const sr = stage.getBoundingClientRect();
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  let maxX = sr.width;
+  if (panel.classList.contains('open') && !isSheet()) {
+    maxX = Math.min(maxX, body.getBoundingClientRect().right - panel.offsetWidth - sr.left);
+  }
+  const cx = pr.left + pr.width / 2 - sr.left;
+  const left = clamp(cx - pw / 2, 8, Math.max(8, maxX - pw - 8));
+  let top = pr.top - sr.top - ph - 12;
+  const below = top < 6;
+  if (below) top = pr.bottom - sr.top + 12;
+  pop.classList.toggle('below', below);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.style.setProperty('--ax', clamp(cx - left, 18, pw - 18) + 'px');
+}
+function closePopover(restoreFocus) {
+  if (state.popPoi == null) return;
+  state.popPoi = null;
+  pop.classList.remove('on');
+  pop.hidden = true;
+  if (restoreFocus && pop.returnFocus) pop.returnFocus.focus({ preventScroll: true });
+}
+
+/* =====================================================================
+ * Events
+ * ===================================================================== */
+function bindMapEvents() {
+  const hitId = t => (t && t.classList && t.classList.contains('hit')) ? t.getAttribute('data-id') : null;
+
+  hitsG.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse') return;
+    const id = hitId(e.target);
+    if (id) setHover(id);
+  });
+  hitsG.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse' || state.edit) return;
+    const id = hitId(e.target);
+    if (id) showTooltipAt(byId[id], e.clientX, e.clientY);
+  });
+  hitsG.addEventListener('pointerout', e => {
+    if (e.pointerType !== 'mouse') return;
+    const to = hitId(e.relatedTarget);
+    if (!to) { setHover(null); hideTooltip(); }
+  });
+  hitsG.addEventListener('click', e => {
+    const id = hitId(e.target);
+    if (!id) return;
+    e.stopPropagation();
+    select(id);
+  });
+  hitsG.addEventListener('focusin', e => {
+    const id = hitId(e.target);
+    if (!id) return;
+    setHover(id);
+    const [x, y] = anchorClientPos(byId[id]);
+    showTooltipAt(byId[id], x, y);
+  });
+  hitsG.addEventListener('focusout', () => { setHover(null); hideTooltip(); });
+  hitsG.addEventListener('keydown', e => {
+    const id = hitId(e.target);
+    if (id && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); select(id); }
+  });
+
+  pinsG.addEventListener('pointerover', e => {
+    const g = e.target.closest('.pin');
+    if (g && !state.edit) setPoiHl(+g.dataset.i, true);
+  });
+  pinsG.addEventListener('pointerout', e => {
+    const g = e.target.closest('.pin');
+    if (g && !g.contains(e.relatedTarget) && !state.edit && state.popPoi !== +g.dataset.i) setPoiHl(null);
+  });
+  pinsG.addEventListener('click', e => {
+    const g = e.target.closest('.pin');
+    if (!g || state.edit) return;
+    e.stopPropagation();
+    const i = +g.dataset.i;
+    if (!state.selected) { select(POIS[i].region); return; }
+    openPopover(i);
+  });
+  pinsG.addEventListener('keydown', e => {
+    const g = e.target.closest('.pin');
+    if (g && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      const i = +g.dataset.i;
+      if (!state.selected) select(POIS[i].region); else openPopover(i, g);
+    }
+  });
+  pinsG.addEventListener('focusin', e => { const g = e.target.closest('.pin'); if (g) setPoiHl(+g.dataset.i, true); });
+
+  svg.addEventListener('click', e => {
+    if (state.edit) return;
+    if (e.target.closest('.hit, .pin')) return;
+    if (state.popPoi != null) { closePopover(); return; }
+    back();
+  });
+}
+
+function bindGlobalEvents() {
+  $('#btn-back').addEventListener('click', back);
+  backFloat.addEventListener('click', back);
+  stage.addEventListener('click', e => {
+    if (e.target === stage || e.target.classList.contains('water')) back();
+  });
+  searchInput.addEventListener('input', () => { state.search = searchInput.value; refreshFilters(); });
+
+  document.addEventListener('pointerdown', e => {
+    if (state.popPoi == null) return;
+    if (pop.contains(e.target) || svg.contains(e.target) || e.target.closest('.poi-btn')) return;
+    closePopover();
+  });
+
+  document.addEventListener('keydown', e => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
+    if (e.key === 'Escape') {
+      if (state.popPoi != null) { closePopover(true); return; }
+      if (state.edit) { toggleEdit(false); return; }
+      if (state.selected) { back(); return; }
+    }
+    if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'e' || e.key === 'E')) {
+      if (state.loaded) toggleEdit();
+    }
+  });
+
+  let rt;
+  const onResize = () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      updateScales();
+      hideTooltip();
+      if (state.selected) frameRegion(byId[state.selected]);
+      if (state.popPoi != null) setTimeout(positionPopover, 800);
+    }, 120);
+  };
+  if ('ResizeObserver' in window) new ResizeObserver(onResize).observe(frame);
+  else window.addEventListener('resize', onResize);
+  sheetMQ.addEventListener && sheetMQ.addEventListener('change', onResize);
+}
+
+/* =====================================================================
+ * Calibration mode (?edit=1 or "E"). Built lazily; nothing is rendered
+ * in production unless activated.
+ * ===================================================================== */
+const editor = { built: false, active: REGIONS[0].id, ui: null, under: null, over: null, outlines: {} };
+
+function toggleEdit(on) {
+  const next = on === undefined ? !state.edit : on;
+  if (next === state.edit) return;
+  if (next) {
+    if (state.selected) back();
+    state.hover = null;
+    hideTooltip();
+    closePopover();
+    state.edit = true;
+    resetCamera();
+    buildEditor();
+    root.classList.add('is-editing');
+    editor.ui.hidden = false;
+    editor.under.style.display = '';
+    editor.over.style.display = '';
+    renderEditor();
+    applyLift();
+    updatePins({ restart: false });
+  } else {
+    state.edit = false;
+    root.classList.remove('is-editing');
+    if (editor.built) {
+      editor.ui.hidden = true;
+      editor.under.style.display = 'none';
+      editor.over.style.display = 'none';
+    }
+    applyLift();
+    updatePins({ restart: true });
+  }
+}
+
+function buildEditor() {
+  if (editor.built) return;
+  editor.built = true;
+  editor.under = el('g', { id: 'ed-under' });
+  space.insertBefore(editor.under, pinsG);
+  editor.over = el('g', { id: 'ed-over' }, space);
+
+  REGIONS.forEach(r => {
+    const u = el('use', { href: `#rp-${r.id}`, class: 'ed-outline', 'data-id': r.id }, editor.under);
+    u.style.setProperty('--c', r.color);
+    u.addEventListener('pointerdown', e => { if (editor.active !== r.id) { e.preventDefault(); setActiveRegion(r.id); } });
+    editor.outlines[r.id] = u;
+  });
+
+  const ui = h('div', 'ed-panel');
+  ui.setAttribute('role', 'dialog');
+  ui.setAttribute('aria-label', 'Mode kalibrasi peta');
+  ui.innerHTML = `
+    <h3>Mode Kalibrasi</h3>
+    <div class="ed-xy" id="ed-xy">x: –  y: –</div>
+    <label>Zona aktif
+      <select id="ed-region">${REGIONS.map(r => `<option value="${r.id}">${r.number}. ${esc(r.nameId)}</option>`).join('')}</select>
+    </label>
+    <ul>
+      <li>Seret titik putih untuk memindahkan.</li>
+      <li>Klik garis tepi untuk menambah titik.</li>
+      <li>Alt/Option + klik titik untuk menghapus.</li>
+      <li>Seret pin POI dan penanda nomor (◆).</li>
+    </ul>
+    <div class="ed-actions"><button type="button" data-act="copy">Salin JSON</button><button type="button" data-act="exit">Keluar (E)</button></div>
+    <p class="ed-toast" id="ed-toast" aria-live="polite"></p>
+    <textarea id="ed-out" readonly hidden aria-label="JSON hasil kalibrasi"></textarea>`;
+  document.body.appendChild(ui);
+  editor.ui = ui;
+  ui.querySelector('#ed-region').addEventListener('change', e => setActiveRegion(e.target.value));
+  ui.querySelector('[data-act="copy"]').addEventListener('click', copyJson);
+  ui.querySelector('[data-act="exit"]').addEventListener('click', () => toggleEdit(false));
+
+  svg.addEventListener('pointermove', e => {
+    if (!state.edit) return;
+    const p = svgPoint(e);
+    ui.querySelector('#ed-xy').textContent = `x: ${p[0]}  y: ${p[1]}`;
+  });
+
+  pinsG.addEventListener('pointerdown', e => {
+    if (!state.edit) return;
+    const g = e.target.closest('.pin');
+    if (!g) return;
+    const i = +g.dataset.i;
+    startDrag(e, p => {
+      POIS[i].x = p[0]; POIS[i].y = p[1];
+      g.setAttribute('transform', `translate(${p[0]} ${p[1]})`);
+    });
+  });
+}
+
+function svgPoint(e) {
+  const m = space.getScreenCTM().inverse();
+  const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m);
+  return [Math.round(p.x), Math.round(p.y)];
+}
+function startDrag(e, onMove, onEnd) {
+  e.preventDefault();
+  e.stopPropagation();
+  const move = ev => onMove(svgPoint(ev));
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    window.removeEventListener('pointercancel', up);
+    if (onEnd) onEnd();
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  window.addEventListener('pointercancel', up);
+}
+
+function setActiveRegion(id) {
+  editor.active = id;
+  editor.ui.querySelector('#ed-region').value = id;
+  renderEditor();
+}
+
+function renderEditor() {
+  const r = byId[editor.active];
+  const g = editor.over;
+  g.textContent = '';
+  REGIONS.forEach(x => editor.outlines[x.id].classList.toggle('active', x.id === r.id));
+  g.style.setProperty('--c', r.color);
+  const k = (frame.clientWidth / state.vb.w) * state.sx || 1;
+  const pts = r.points;
+
+  pts.forEach((p, i) => {
+    const q = pts[(i + 1) % pts.length];
+    const line = el('line', { class: 'ed-edge', x1: p[0], y1: p[1], x2: q[0], y2: q[1], 'data-i': i }, g);
+    line.addEventListener('pointerdown', e => {
+      const np = svgPoint(e);
+      pts.splice(i + 1, 0, np);
+      commitRegion(r);
+      renderEditor();
+      dragVertex(e, r, i + 1);
+    });
+  });
+  pts.forEach((p, i) => {
+    const c = el('circle', { class: 'ed-handle', cx: p[0], cy: p[1], r: Math.max(3, 6 / k), 'data-i': i }, g);
+    c.addEventListener('pointerdown', e => {
+      if (e.altKey) {
+        e.preventDefault();
+        if (pts.length > 3) { pts.splice(i, 1); commitRegion(r); renderEditor(); }
+        return;
+      }
+      dragVertex(e, r, i);
+    });
+  });
+  const s = Math.max(4, 8 / k);
+  const a = el('rect', { class: 'ed-anchor', x: -s, y: -s, width: s * 2, height: s * 2, transform: `translate(${r.labelAnchor[0]} ${r.labelAnchor[1]}) rotate(45)` }, g);
+  a.addEventListener('pointerdown', e => {
+    startDrag(e, p => {
+      r.labelAnchor = p;
+      a.setAttribute('transform', `translate(${p[0]} ${p[1]}) rotate(45)`);
+      moveAnchor(r);
+    });
+  });
+}
+
+function dragVertex(e, r, i) {
+  const g = editor.over;
+  startDrag(e, p => {
+    r.points[i] = p;
+    commitRegion(r);
+    const n = r.points.length;
+    const h = g.querySelector(`.ed-handle[data-i="${i}"]`);
+    if (h) { h.setAttribute('cx', p[0]); h.setAttribute('cy', p[1]); }
+    const e1 = g.querySelector(`.ed-edge[data-i="${i}"]`);
+    if (e1) { e1.setAttribute('x1', p[0]); e1.setAttribute('y1', p[1]); }
+    const e0 = g.querySelector(`.ed-edge[data-i="${(i - 1 + n) % n}"]`);
+    if (e0) { e0.setAttribute('x2', p[0]); e0.setAttribute('y2', p[1]); }
+  });
+}
+
+function commitRegion(r) {
+  const els = regionEls[r.id];
+  els.poly.setAttribute('points', ptsAttr(r.points));
+  if (els.clipPoly) els.clipPoly.setAttribute('points', ptsAttr(offsetPolygon(r.points, .9)));
+  if (r.kind === 'tab') renderTabDecor(r);
+}
+function moveAnchor(r) {
+  const els = regionEls[r.id];
+  if (els.badge) els.badge.setAttribute('transform', `translate(${r.labelAnchor[0]} ${r.labelAnchor[1]})`);
+  if (els.pill) { renderPill(r); placePillHit(r); }
+}
+
+function copyJson() {
+  const keys = ['id', 'number', 'kind', 'color', 'name', 'nameId', 'short', 'pillText', 'blurb', 'points', 'labelAnchor'];
+  const regions = REGIONS.map(r => {
+    const o = {};
+    keys.forEach(k => { if (r[k] !== undefined) o[k] = r[k]; });
+    return '    ' + JSON.stringify(o);
+  });
+  const pois = POIS.map(p => '    ' + JSON.stringify({
+    region: p.region, name: p.name, type: p.type, services: p.services, tag: p.tag, description: p.description, x: p.x, y: p.y
+  }));
+  const text = `{\n  "REGIONS": [\n${regions.join(',\n')}\n  ],\n  "POIS": [\n${pois.join(',\n')}\n  ]\n}\n`;
+  const out = editor.ui.querySelector('#ed-out');
+  const toast = editor.ui.querySelector('#ed-toast');
+  out.value = text;
+  out.hidden = false;
+  const done = ok => { toast.textContent = ok ? 'JSON disalin ke clipboard.' : 'Salin manual dari kotak di bawah.'; };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => done(true), () => { out.select(); done(document.execCommand('copy')); });
+  } else {
+    out.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+    done(ok);
+  }
+}
+
+/* =====================================================================
+ * Boot: single PNG preload with skeleton
+ * ===================================================================== */
+buildLegend();
+buildRail();
+buildChips();
+buildList();
+buildStrip();
+updateLegendCounts();
+updateRailCounts();
+bindGlobalEvents();
+
+const img = new Image();
+img.decoding = 'async';
+img.onload = () => {
+  buildMap(img.naturalWidth || COORD_SPACE.w, img.naturalHeight || COORD_SPACE.h);
+  state.loaded = true;
+  updateScales();
+  REGIONS.forEach(r => regionEls[r.id].zone.classList.toggle('is-served', countFor(r.id) > 0));
+  requestAnimationFrame(() => root.classList.add('is-loaded'));
+  $('#skeleton').setAttribute('aria-busy', 'false');
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('edit') === '1') toggleEdit(true);
+  else {
+    const m = location.hash.match(/^#zona-(.+)$/);
+    if (m && byId[m[1]]) setTimeout(() => select(m[1]), 350);
+  }
+};
+img.onerror = () => {
+  const sk = $('#skeleton');
+  sk.classList.add('is-error');
+  $('#skeleton-text').textContent = `Gambar peta tidak dapat dimuat (${MAP_IMAGE_URL}). Periksa konstanta MAP_IMAGE_URL.`;
+};
+img.src = MAP_IMAGE_URL;
+})();
+</script>
+</body>
+</html>

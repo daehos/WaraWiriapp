@@ -3,6 +3,7 @@ import ContactInfo from '../components/ContactInfo'
 import Footer from '../components/Footer'
 import Hero from '../components/Hero'
 import Navbar from '../components/Navbar'
+import PetaWisata from '../components/peta/PetaWisata'
 import ReservationSection from '../components/ReservationSection'
 import VillageInfo from '../components/VillageInfo'
 import VillageMap from '../components/VillageMap'
@@ -14,6 +15,7 @@ export default function Landing() {
       <Navbar />
       <Hero name={village.name} tagline={village.tagline} image={village.heroImage} />
       <VillageInfo description={village.description} highlights={village.highlights} />
+      <PetaWisata />
       <Carousel images={village.gallery} />
       <ReservationSection />
 
