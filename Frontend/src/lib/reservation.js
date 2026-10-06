@@ -1,3 +1,6 @@
+import { doc, setDoc } from 'firebase/firestore'
+import { db } from './firebase.js'
+
 const PHONE_RE = /^(\+62|62|0)8[1-9][0-9]{6,11}$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -45,23 +48,40 @@ export function validateReservation(values, jenisWisataOptions = []) {
   return errors
 }
 
-export async function submitReservation(values) {
-  let response
-  try {
-    response = await fetch('/api/reservations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-  } catch {
-    throw new Error('Tidak bisa terhubung ke server. Coba lagi sebentar lagi.')
-  }
+export function createId(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0')
+  const stamp =
+    `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
+    `-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `WWR-${stamp}-${rand}`
+}
 
-  const body = await response.json().catch(() => ({}))
-  if (!response.ok) {
-    const error = new Error(body.error || 'Reservasi gagal dikirim. Coba lagi.')
-    error.fields = body.errors || null
+export async function submitReservation(values) {
+  const errors = validateReservation(values)
+  if (Object.keys(errors).length > 0) {
+    const error = new Error('Data reservasi belum lengkap.')
+    error.fields = errors
     throw error
   }
-  return body
+
+  const entry = {
+    id: createId(),
+    status: 'menunggu-konfirmasi',
+    nama: values.nama.trim(),
+    kontak: values.kontak.trim().replace(/[\s-]/g, ''),
+    tanggal: values.tanggal,
+    pax: Number(values.pax),
+    jenisWisata: values.jenisWisata.trim() || null,
+    createdAt: new Date().toISOString(),
+  }
+
+  try {
+    await setDoc(doc(db, 'reservations', entry.id), entry)
+  } catch {
+    const error = new Error('Reservasi gagal dikirim. Coba lagi sebentar lagi.')
+    error.fields = null
+    throw error
+  }
+  return entry
 }

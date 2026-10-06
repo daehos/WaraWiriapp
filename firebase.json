@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "public": "Frontend/dist",
+    "ignore": ["**/.*", "**/node_modules/**"],
+    "cleanUrls": true
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

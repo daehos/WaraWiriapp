@@ -54,7 +54,9 @@ Belum diumumkan.
 - Tailwind CSS v4
 - React Leaflet + OpenStreetMap untuk peta lokasi (gratis, tanpa API key)
 
-**Backend** (`Backend/`) — sudah dibangun untuk Sprint 2: API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models), penyimpanan ke **Firebase Firestore** (koleksi `reservations`) lewat `firebase-admin`. Database file JSON lama (`Backend/data/reservations.json`) hanya dipakai sebagai sumber migrasi.
+**Backend** (`Backend/`) — API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models) + `firebase-admin` untuk membaca data di Firestore. **Opsional di produksi** — formulir reservasi menulis langsung dari browser ke Firestore (lihat bagian Deploy); backend dipakai untuk baca data admin secara lokal dan migrasi data lama.
+
+**Frontend** menulis reservasi langsung ke Firestore lewat Firebase Web SDK — validasi form ada di client, validasi kedua ada di [security rules](firestore.rules).
 
 - `GET /api/reservations` — daftar semua reservasi
 - `POST /api/reservations` — buat reservasi baru (validasi di server)
@@ -65,7 +67,10 @@ Belum diumumkan.
 
 ```text
 WaraWiriApp/
-├── 📂 Backend/                # API reservasi (Node.js tanpa framework, MVC)
+├── 📂 .github/workflows/       # deploy-hosting.yml — auto-deploy ke Firebase Hosting
+├── 📄 firestore.rules           # aturan Firestore: create tervalidasi, read/update/delete ditolak
+├── 📄 firebase.json / .firebaserc  # konfigurasi Firebase Hosting (public: Frontend/dist)
+├── 📂 Backend/                # API reservasi (opsional — baca admin & migrasi)
 │   ├── 📂 data/
 │   │   └── reservations.json  # data lama — sumber migrasi ke Firestore
 │   ├── 📂 src/
@@ -74,7 +79,7 @@ WaraWiriApp/
 │   │   ├── 📂 routes/         # reservations.js — dispatch GET/POST /api/reservations
 │   │   ├── 📂 scripts/        # migrateJsonToFirestore.js — migrasi data JSON lama
 │   │   ├── firebase.js        # inisialisasi firebase-admin + kredensial
-│   │   ├── validators.js      # validasi server-side (server tidak percaya client)
+│   │   ├── validators.js      # validasi server-side (untuk endpoint API)
 │   │   ├── http.js            # helper response & baca body request
 │   │   └── app.js             # entry point: HTTP server + sajikan Frontend/dist
 │   ├── .env.example           # PORT & FIREBASE_SERVICE_ACCOUNT
@@ -85,7 +90,7 @@ WaraWiriApp/
     │   ├── 📂 assets/village/ # Foto (saat ini placeholder dari Unsplash)
     │   ├── 📂 components/     # Hero, Carousel, VillageInfo, ContactInfo, VillageMap, ReservationSection, dst.
     │   ├── 📂 data/           # village.js — konten desa, GANTI dengan data asli saat tersedia
-    │   ├── 📂 lib/             # reservation.js — validasi & submit form + test (node:test)
+    │   ├── 📂 lib/            # reservation.js (validasi & submit) + firebase.js (Web SDK) + test
     │   ├── 📂 pages/          # Landing.jsx — merangkai semua komponen jadi satu halaman
     │   └── App.jsx
     └── package.json           # Dependensi & skrip frontend
@@ -110,17 +115,18 @@ npm run dev
 
 Buka [http://localhost:5173](http://localhost:5173) di browser. Untuk build production: `npm run build` (hasilnya di `Frontend/dist/`). Unit test validasi: `npm test`.
 
-### Backend
+### Backend (opsional — baca data admin & migrasi)
 
-Butuh Node.js 22.9+ dan `Frontend` sudah di-`npm install` (untuk build):
+> Form reservasi **tidak butuh backend**: browser menulis langsung ke Firestore. Backend di bawah hanya untuk membaca data (`GET /api/reservations`) secara lokal dan menjalankan migrasi.
 
-**1. Hubungkan Firebase (sekali saja, untuk pemilik project)**
+Butuh Node.js 22.9+:
+
+**1. Kunci Firebase (sekali saja, untuk pemilik project)**
 
 1. Buka [Firebase Console](https://console.firebase.google.com) → pilih project `warawiriapp-da23e`
-2. Buat database Firestore: **Build → Firestore Database → Create database** (production mode, region `asia-southeast1`)
-3. **Project settings → Service accounts → Generate new private key** — file `*.json` akan terunduh
-4. Simpan file itu sebagai `Backend/serviceAccountKey.json` — **sudah cukup, tanpa `.env`**
-5. (Opsional) hanya kalau nama file/port beda — salin `.env.example` jadi `.env`:
+2. **Project settings → Service accounts → Generate new private key** — file `*.json` akan terunduh
+3. Simpan file itu sebagai `Backend/serviceAccountKey.json` — **sudah cukup, tanpa `.env`**
+4. (Opsional) hanya kalau nama file/port beda — salin `.env.example` jadi `.env`:
 
    ```env
    PORT=3001
@@ -128,12 +134,18 @@ Butuh Node.js 22.9+ dan `Frontend` sudah di-`npm install` (untuk build):
    ```
 
    (`.env` dan file service account sudah di-`.gitignore` — **jangan pernah di-commit ke git**, kirim filenya lewat WhatsApp/Drive saja)
-6. (Opsional) pindahkan data lama ke Firestore:
+5. (Opsional) pindahkan data lama ke Firestore:
 
    ```bash
    cd Backend
    npm run migrate
    ```
+
+**Security rules (WAJIB dipublikasikan sekali)**
+
+Isi lengkap ada di [`firestore.rules`](firestore.rules): client boleh **create** dengan data tervalidasi (format, panjang, `pax` 1–1000, tanggal minimal hari ini), tetapi **tidak ada** yang boleh baca/ubah/hapus lewat client.
+
+Cara publish: Firebase Console → **Firestore Database → Rules** → ganti seluruh isi dengan isi `firestore.rules` → **Publish**.
 
 **Menjalankan di laptop lain (tim)**
 
@@ -143,63 +155,51 @@ Kunci Firebase tidak ikut di git. Minta file kunci ke pemilik project (WhatsApp/
 git clone <repo>
 cd WaraWiriapp/Backend && npm install && copy <path-kunci> serviceAccountKey.json
 cd ../Frontend && npm install
-cd ../Backend && npm start      # backend siap
+cd ../Backend && npm start      # backend siap di :3001
 ```
 
-**Security rules** — karena backend memakai `firebase-admin` (melewati rules), blokir akses langsung dari browser/app lain:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-```
-
-**2. Jalankan**
+**Jalankan lokal (development):**
 
 ```bash
-# terminal 1 — mode development (Vite dev server mem-proxy /api ke backend)
-cd Backend
-npm start                          # http://localhost:3001 (memuat .env otomatis)
+# terminal 1 — backend (opsional, untuk GET admin)
+cd Backend && npm start
 
-# terminal 2
-cd Frontend
-npm run dev
+# terminal 2 — frontend
+cd Frontend && npm run dev
 ```
 
-Mode production (satu terminal saja, backend menyajikan `Frontend/dist`):
+Mode production lokal (backend menyajikan `Frontend/dist`):
 
 ```bash
 cd Frontend && npm run build
 cd ../Backend && npm start         # buka http://localhost:3001
 ```
 
-Data reservasi tersimpan online di Firestore (koleksi `reservations`, project `warawiriapp-da23e`). Cek lewat `GET http://localhost:3001/api/reservations` atau langsung di Firebase Console.
+Data reservasi tersimpan online di Firestore (koleksi `reservations`, project `warawiriapp-da23e`). Cek lewat Firebase Console, atau lokal lewat `GET http://localhost:3001/api/reservations`.
 
 ---
 
-## ☁️ Deploy ke Production (otomatis dari GitHub)
+## ☁️ Deploy ke Production (GitHub → Firebase Hosting)
 
-Konfigurasi ada di [`render.yaml`](render.yaml) (Render Blueprint) — build `Frontend` lalu jalankan `Backend` sebagai satu layanan, jadi API dan situs berada di URL yang sama.
+Situs di-host di **Firebase Hosting** (gratis, tanpa kartu kredit) dan di-deploy otomatis oleh **GitHub Actions** — workflow: [`.github/workflows/deploy-hosting.yml`](.github/workflows/deploy-hosting.yml).
 
 **Setup sekali saja:**
 
-1. Buka [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** → hubungkan repo `daehos/WaraWiriapp` (butuh izin akses GitHub)
-2. Render membaca `render.yaml` → klik **Apply**
-3. Setelah service jadi, buka **Environment** → isi variabel `FIREBASE_SERVICE_ACCOUNT_JSON` dengan **seluruh isi** file `serviceAccountKey.json` (tempel apa adanya) → **Save**
-4. Tunggu deploy selesai → dapat URL publik `https://warawiriapp-xxxx.onrender.com`
+1. Publish security rules (bagian *Backend* di atas) — kalau belum, form tidak akan bisa menulis data.
+2. Buka repo di GitHub → **Settings → Secrets and variables → Actions → New repository secret**:
+   - Name: `FIREBASE_SERVICE_ACCOUNT`
+   - Value: seluruh isi file `Backend/serviceAccountKey.json` (tempel apa adanya)
+3. Push ke `main` → tab **Actions** di GitHub akan build `Frontend/dist` lalu deploy ke Hosting.
 
-**Setelah itu auto-deploy:** setiap `git push` ke `main` memicu build & deploy ulang otomatis.
+Hasilnya: **`https://warawiriapp-da23e.web.app`** — setiap push ke `main` auto-deploy.
 
-Catatan free tier:
+Catatan:
 
-- Service **tidur** setelah ~15 menit tanpa akses → request pertama bisa nunggu ±30 detik (wajar).
-- Build butuh `Frontend/dist` — perintah build sudah tercantum di `render.yaml`, tidak perlu diubah.
-- `FIREBASE_SERVICE_ACCOUNT_JSON` hanya ditaruh di dashboard Render (bukan di git).
+- Kuota gratis Spark: 10 GB storage, 360 MB/hari transfer — lebih dari cukup.
+- Frontend **tidak lagi memanggil `/api`** di produksi; backend cukup jalan di laptop untuk baca data admin.
+- Kalau workflow gagal `403 (hosting)` → service account butuh role **Firebase Hosting Admin** di Google Cloud Console → IAM.
+- Kalau gagal `site not found` → buka Firebase Console → **Hosting → Get started** sekali untuk membuat site.
+- Limitasi: tanpa backend, proteksi anti-spam hanya dari rules (format & panjang data) — belum ada rate limit per pengunjung.
 
 ---
 
