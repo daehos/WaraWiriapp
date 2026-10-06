@@ -46,14 +46,14 @@ export default function PetaWisata() {
         <header className="peta-head">
           <p className="eyebrow">
             <span className="dot"><Icon id="ic-pin" className="" /></span>
-            Jelajahi Peta Wisata Desa Batulayang
+            Jelajahi Peta Wisata Desa Manud Jaya
           </p>
           <h2 id="peta-title">
-            Jelajahi Pesona <span>Desa Wisata Batulayang!</span>
+            Jelajahi Pesona <span>Desa Wisata Manud Jaya!</span>
           </h2>
           <p className="lead">
-            Temukan keindahan alam terasering, kehangatan homestay warga, kuliner khas, dan
-            kebudayaan Cililin.
+            Daki Bukit Manud, berendam di Curug Kabut Sendang, kenali bunga langka, petik buah di
+            kebun warga, dan rasakan budaya lokal Bandung Barat.
           </p>
         </header>
 
@@ -80,7 +80,7 @@ export default function PetaWisata() {
               <svg
                 id="map"
                 role="group"
-                aria-label="Peta interaktif Desa Wisata Batulayang. Pilih zona untuk melihat daftar spot."
+                aria-label="Peta interaktif Desa Wisata Manud Jaya. Pilih zona untuk melihat daftar spot."
               />
             </div>
             <button className="back-float" id="back-float" type="button" tabIndex={-1}>
