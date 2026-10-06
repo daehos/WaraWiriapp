@@ -182,6 +182,27 @@ Data reservasi tersimpan online di Firestore (koleksi `reservations`, project `w
 
 ---
 
+## ☁️ Deploy ke Production (otomatis dari GitHub)
+
+Konfigurasi ada di [`render.yaml`](render.yaml) (Render Blueprint) — build `Frontend` lalu jalankan `Backend` sebagai satu layanan, jadi API dan situs berada di URL yang sama.
+
+**Setup sekali saja:**
+
+1. Buka [dashboard.render.com](https://dashboard.render.com) → **New → Blueprint** → hubungkan repo `daehos/WaraWiriapp` (butuh izin akses GitHub)
+2. Render membaca `render.yaml` → klik **Apply**
+3. Setelah service jadi, buka **Environment** → isi variabel `FIREBASE_SERVICE_ACCOUNT_JSON` dengan **seluruh isi** file `serviceAccountKey.json` (tempel apa adanya) → **Save**
+4. Tunggu deploy selesai → dapat URL publik `https://warawiriapp-xxxx.onrender.com`
+
+**Setelah itu auto-deploy:** setiap `git push` ke `main` memicu build & deploy ulang otomatis.
+
+Catatan free tier:
+
+- Service **tidur** setelah ~15 menit tanpa akses → request pertama bisa nunggu ±30 detik (wajar).
+- Build butuh `Frontend/dist` — perintah build sudah tercantum di `render.yaml`, tidak perlu diubah.
+- `FIREBASE_SERVICE_ACCOUNT_JSON` hanya ditaruh di dashboard Render (bukan di git).
+
+---
+
 ## 📝 Catatan untuk Kontributor
 
 - **Konten masih placeholder.** Nama desa, deskripsi, kontak, dan koordinat peta ada di `Frontend/src/data/village.js` — cukup ubah file ini untuk mengganti ke data desa mitra yang asli, tidak perlu menyentuh komponen.
