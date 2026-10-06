@@ -4,60 +4,60 @@
  * Semua koordinat memakai piksel artwork asli 1024 × 764;
  * jika versi CDN beresolusi lain, koordinat diskalakan otomatis.
  * ===================================================================== */
-export const MAP_IMAGE_URL = `${import.meta.env.BASE_URL}batulayang-map.png`
+export const MAP_IMAGE_URL = `${import.meta.env.BASE_URL}manud-jaya-map.jpg`
 export const COORD_SPACE = { w: 1024, h: 764 }
 
 /* =====================================================================
  * REGIONS — satu poligon per zona (piksel gambar), termasuk sisi tanah
  * cokelat di bawahnya. Kalibrasi: buka ?edit=1, lalu "Salin JSON"
  * dan tempel hasilnya ke sini.
- * kind: 'zone' = dipotong dari PNG, 'tab' = digambar (akses tepi pulau).
+ * kind: 'zone' = dipotong dari gambar, 'tab' = digambar (akses tepi pulau).
  * ===================================================================== */
 export const REGIONS = [
   {
-    id: 'sawah-atas', number: 1, kind: 'zone', color: '#D23C9E',
-    name: 'Upper Terraces & Trekking',
-    nameId: 'Trekking & Sawah Terasering Atas',
-    short: 'Trekking & Sawah Atas',
-    blurb: 'Pematang sawah berundak di lereng atas dengan jalur trekking, saung pandang, dan panorama matahari terbenam.',
-    points: [[62,365],[64,330],[80,304],[104,294],[130,288],[160,296],[200,268],[226,240],[248,212],[272,192],[296,170],[318,158],[330,190],[350,215],[372,232],[392,258],[388,290],[380,315],[365,335],[340,346],[320,360],[300,372],[330,378],[390,386],[398,400],[430,410],[446,422],[456,436],[466,446],[474,456],[460,468],[450,480],[448,500],[440,512],[420,520],[400,530],[384,540],[370,552],[344,566],[344,632],[300,606],[264,585],[224,561],[180,537],[136,512],[64,476]],
-    labelAnchor: [196, 384],
+    id: 'pendakian', number: 1, kind: 'zone', color: '#D23C9E',
+    name: 'Hiking Trail & Protected Forest',
+    nameId: 'Jalur Pendakian & Hutan Lindung',
+    short: 'Pendakian & Hutan',
+    blurb: 'Mendaki Bukit Manud melewati hutan lindung pinus merah, dengan pos registrasi di kaki bukit dan panorama puncak di atas awan.',
+    points: [[552,188],[552,196],[528,200],[480,236],[452,236],[452,244],[440,244],[444,292],[456,292],[464,312],[476,316],[492,340],[472,344],[464,364],[444,380],[396,368],[344,376],[332,364],[308,368],[292,352],[260,356],[252,348],[224,344],[184,296],[196,284],[196,268],[216,268],[224,252],[248,256],[252,232],[272,232],[276,216],[288,216],[300,200],[340,196],[344,188],[332,184],[332,160],[340,152],[360,152],[364,128],[404,92],[428,92],[444,112],[460,116],[464,144],[444,152],[500,156],[508,168],[532,172]],
+    labelAnchor: [318, 282],
   },
   {
-    id: 'sawah-bawah', number: 2, kind: 'zone', color: '#7B4BC4',
-    name: 'Lower Terraces & River',
-    nameId: 'Area Sawah Terasering Bawah & Alur Sungai',
-    short: 'Sawah Bawah & Sungai',
-    blurb: 'Sawah terasering bawah yang dialiri Sungai Cihaur: susur sungai, kolam alami, dan saung lesehan di tepi air.',
-    points: [[474,456],[488,462],[510,474],[522,482],[552,488],[568,504],[584,520],[600,536],[616,548],[616,668],[592,682],[560,700],[536,714],[515,729],[480,709],[448,690],[416,672],[380,651],[344,632],[344,566],[370,552],[384,540],[400,530],[420,520],[440,512],[448,500],[450,480],[460,468]],
-    labelAnchor: [528, 586],
+    id: 'air-terjun', number: 2, kind: 'zone', color: '#7B4BC4',
+    name: 'Kabut Sendang Waterfalls',
+    nameId: 'Air Terjun Curug Kabut Sendang',
+    short: 'Curug Kabut Sendang',
+    blurb: 'Rangkaian curug bertingkat dengan kolam alami berair jernih di tengah hutan ungu. Sejuk untuk berendam dan bermain air.',
+    points: [[184,296],[224,344],[252,348],[260,356],[292,352],[308,368],[332,364],[344,376],[396,368],[444,380],[464,440],[464,488],[440,532],[412,548],[412,560],[388,552],[384,576],[364,576],[356,584],[360,644],[236,576],[220,556],[200,556],[64,476],[60,376],[72,336],[140,324],[156,300]],
+    labelAnchor: [128, 432],
   },
   {
-    id: 'homestay', number: 3, kind: 'zone', color: '#D8462F',
-    name: 'Homestays & Village Houses',
-    nameId: 'Homestay & Pemukiman Warga',
-    short: 'Homestay Warga',
-    blurb: 'Rumah panggung warga yang dibuka sebagai homestay. Rasakan keseharian kampung Sunda dan sarapan khas buatan ambu.',
-    points: [[340,346],[365,335],[380,315],[388,290],[392,258],[372,232],[350,215],[330,190],[318,158],[340,142],[372,150],[408,140],[430,118],[456,100],[500,96],[540,100],[580,92],[620,96],[620,205],[615,232],[640,240],[655,256],[632,265],[625,290],[640,305],[632,315],[620,322],[582,332],[575,345],[565,355],[590,370],[600,385],[598,398],[625,405],[632,428],[624,445],[624,465],[605,472],[586,464],[562,456],[546,448],[530,440],[520,432],[470,422],[452,410],[440,398],[428,386],[410,376],[392,366],[376,350]],
-    labelAnchor: [482, 300],
+    id: 'konservasi', number: 3, kind: 'zone', color: '#D8462F',
+    name: 'Rare Flower Conservation',
+    nameId: 'Konservasi Bunga Langka',
+    short: 'Konservasi Bunga',
+    blurb: 'Taman konservasi edelweiss dan Kebun Raya Mini Manud Jaya: rumah kaca bunga langka, pembibitan, dan jalur edukasi flora pegunungan.',
+    points: [[780,284],[784,308],[772,320],[768,304],[752,296],[712,324],[688,328],[680,344],[648,352],[644,364],[612,368],[596,344],[492,340],[476,316],[464,312],[456,292],[444,292],[440,244],[452,244],[452,236],[480,236],[528,200],[552,196],[552,188],[588,184],[616,196],[652,180],[692,184],[720,208],[720,224],[780,228],[780,248],[764,252],[776,264]],
+    labelAnchor: [596, 300],
   },
   {
-    id: 'kerajinan', number: 4, kind: 'zone', color: '#E9A21B',
-    name: 'Crafts Hall & Culture Studio',
-    nameId: 'Balai Kerajinan & Sanggar Budaya',
-    short: 'Balai Kerajinan',
-    blurb: 'Sepanjang jalur sungai dan jembatan kayu: sanggar anyaman bambu, seni calung, dan galeri kerajinan Cililin.',
-    points: [[340,346],[376,350],[392,366],[410,376],[428,386],[440,398],[452,410],[470,422],[520,432],[530,440],[546,448],[562,456],[586,464],[605,472],[624,465],[624,445],[632,428],[625,405],[668,428],[712,438],[716,460],[720,500],[744,508],[768,520],[768,585],[752,594],[720,612],[680,633],[650,650],[616,668],[616,548],[600,536],[584,520],[568,504],[552,488],[522,482],[510,474],[488,462],[474,456],[466,446],[456,436],[446,422],[430,410],[398,400],[390,386],[330,378],[300,372],[320,360]],
-    labelAnchor: [690, 500],
+    id: 'sawah-kebun', number: 4, kind: 'zone', color: '#E9A21B',
+    name: 'Rice Terraces & Pick-Your-Own Farms',
+    nameId: 'Sawah Terasering & Kebun Petik',
+    short: 'Sawah & Kebun Petik',
+    blurb: 'Sawah Terasering Manud yang berundak keemasan, aliran sungai pedesaan, dan kebun petik buah serta sayur milik warga.',
+    points: [[492,340],[596,344],[612,368],[616,380],[636,388],[664,416],[668,460],[660,468],[640,468],[636,484],[644,496],[660,496],[672,476],[704,476],[744,496],[744,504],[764,516],[756,592],[528,724],[496,724],[360,644],[356,584],[364,576],[384,576],[388,552],[412,560],[412,548],[440,532],[464,488],[464,440],[444,380],[464,364],[472,344]],
+    labelAnchor: [560, 470],
   },
   {
-    id: 'kuliner', number: 5, kind: 'zone', color: '#3D9A3F',
-    name: 'Culinary & Local Stalls',
-    nameId: 'Area Kuliner & Warung Lokal',
-    short: 'Kuliner Lokal',
-    blurb: 'Deretan warung di bawah rindang pepohonan: nasi liwet, surabi oncom, bandrek hangat, dan oleh-oleh khas Cililin.',
-    points: [[620,96],[660,98],[704,114],[736,136],[760,176],[800,190],[812,206],[826,224],[840,242],[872,262],[890,280],[904,296],[926,306],[938,326],[956,338],[966,352],[964,470],[920,496],[880,520],[848,537],[808,560],[768,585],[768,520],[744,508],[720,500],[716,460],[712,438],[668,428],[625,405],[598,398],[600,385],[590,370],[565,355],[575,345],[582,332],[620,322],[632,315],[640,305],[625,290],[632,265],[655,256],[640,240],[615,232],[620,205]],
-    labelAnchor: [850, 322],
+    id: 'budaya', number: 5, kind: 'zone', color: '#3D9A3F',
+    name: 'Homestays, Crafts & Local Food',
+    nameId: 'Homestay, Kerajinan & Kuliner Lokal',
+    short: 'Budaya & Homestay',
+    blurb: 'Kampung rumah panggung warga yang dibuka sebagai homestay, lengkap dengan lapak kerajinan, warung kuliner lokal, dan sanggar budaya.',
+    points: [[756,592],[764,516],[744,504],[744,496],[704,476],[672,476],[660,496],[644,496],[636,484],[640,468],[660,468],[668,460],[664,416],[636,388],[616,380],[612,368],[644,364],[648,352],[680,344],[688,328],[712,324],[752,296],[768,304],[772,320],[784,308],[780,284],[800,280],[812,288],[812,280],[836,280],[840,308],[868,312],[876,344],[900,340],[916,368],[948,368],[964,396],[960,476]],
+    labelAnchor: [872, 452],
   },
   {
     id: 'akses-cililin', number: 6, kind: 'tab', color: '#1F8FB3',
@@ -65,19 +65,19 @@ export const REGIONS = [
     nameId: 'Akses dari Cililin',
     short: 'Akses Cililin',
     pillText: 'Cililin',
-    blurb: 'Gerbang selatan dari arah Kecamatan Cililin. Titik turun angkot, ojek wisata, dan pos informasi pengunjung.',
-    points: [[600,678],[648,651],[698,679],[650,706]],
-    labelAnchor: [676, 728],
+    blurb: 'Gerbang barat dari arah Kecamatan Cililin, paling dekat ke Curug Kabut Sendang. Titik turun angkot dan ojek wisata.',
+    points: [[214,566],[252,586],[214,606],[176,586]],
+    labelAnchor: [120, 592],
   },
   {
-    id: 'akses-bandung', number: 7, kind: 'tab', color: '#3557C5',
-    name: 'Access from Bandung',
-    nameId: 'Akses dari Bandung',
-    short: 'Akses Bandung',
-    pillText: 'Bandung',
-    blurb: 'Gerbang utama dari arah Bandung dan Padalarang, dilengkapi area parkir kendaraan dan halte shuttle desa.',
-    points: [[884,517],[932,490],[972,512],[924,539]],
-    labelAnchor: [978, 541],
+    id: 'akses-padalarang', number: 7, kind: 'tab', color: '#3557C5',
+    name: 'Access from Padalarang',
+    nameId: 'Akses dari Padalarang',
+    short: 'Akses Padalarang',
+    pillText: 'Padalarang',
+    blurb: 'Gerbang utama dari arah Padalarang dan Bandung, dilengkapi parkir bus, pos tiket, dan halte shuttle desa.',
+    points: [[636,673],[678,695],[638,716],[596,694]],
+    labelAnchor: [640, 738],
   },
 ]
 
@@ -86,79 +86,77 @@ export const REGIONS = [
  * type: foto | saung | toilet | parkir | info | trekking | sanggar | homestay | kuliner | kerajinan
  * ===================================================================== */
 export const POIS = [
-  // 1 · Trekking & Sawah Terasering Atas
-  { region: 'sawah-atas', name: 'Gerbang Jalur Trekking Pasir Luhur', type: 'trekking', services: ['Trekking', 'Fasilitas Umum'], tag: 'Pintu masuk utara', description: 'Titik awal jalur trekking 3,2 km mengelilingi terasering. Tersedia peta jalur dan tongkat pinjaman.', x: 312, y: 394 },
-  { region: 'sawah-atas', name: 'Sawah Terasering Spot Sunset', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Pasir Sawah Luhur', description: 'Undakan sawah menghadap barat, paling indah sekitar pukul 17.15 saat langit berubah jingga.', x: 214, y: 330 },
-  { region: 'sawah-atas', name: 'Puncak Pematang Batulayang', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Puncak terasering', description: 'Titik tertinggi terasering dengan panorama Gunung Lagadar dan hamparan sawah di bawahnya.', x: 292, y: 208 },
-  { region: 'sawah-atas', name: 'Saung Lesehan Pematang', type: 'saung', services: ['Kuliner', 'Spot Foto'], tag: 'Teras sawah tengah', description: 'Saung bambu untuk beristirahat sambil menikmati kopi Cililin dan pisang goreng.', x: 150, y: 400 },
-  { region: 'sawah-atas', name: 'Gazebo Pandang Terasering', type: 'foto', services: ['Spot Foto'], tag: 'Tepi barat', description: 'Gazebo kayu di bibir terasering, favorit untuk foto prewedding dan keluarga.', x: 118, y: 350 },
-  { region: 'sawah-atas', name: 'Toilet & Mushola Jalur Atas', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Pos istirahat 1', description: 'Toilet bersih dan mushola kecil di tengah jalur trekking. Air dari mata air setempat.', x: 252, y: 272 },
-  { region: 'sawah-atas', name: 'Pos Pandu Trekking', type: 'info', services: ['Trekking', 'Fasilitas Umum'], tag: 'Pertigaan jalur', description: 'Pemandu lokal siap menemani trekking berkelompok. Pesan minimal sehari sebelumnya.', x: 272, y: 452 },
-  { region: 'sawah-atas', name: 'Jalur Trekking Leuwi Batu', type: 'trekking', services: ['Trekking'], tag: 'Jalur biru', description: 'Jalur setapak berbatu menuruni terasering menuju aliran sungai. Tingkat kesulitan sedang.', x: 352, y: 472 },
-  { region: 'sawah-atas', name: 'Jembatan Bambu Pematang', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Jalur biru bawah', description: 'Jembatan bambu kecil melintasi saluran irigasi, latar foto yang khas pedesaan.', x: 402, y: 506 },
-  { region: 'sawah-atas', name: 'Camping Ground Saung Tengah', type: 'saung', services: ['Trekking', 'Homestay'], tag: 'Lahan datar tengah', description: 'Area berkemah untuk 15 tenda, lengkap dengan saung, api unggun, dan sewa perlengkapan.', x: 396, y: 442 },
+  // 1 · Jalur Pendakian & Hutan Lindung
+  { region: 'pendakian', name: 'Puncak Bukit Manud', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Puncak 1.420 mdpl', description: 'Titik tertinggi desa dengan bendera puncak dan lautan awan saat matahari terbit.', x: 412, y: 104 },
+  { region: 'pendakian', name: 'Pos Registrasi Pendakian', type: 'info', services: ['Trekking', 'Fasilitas Umum'], tag: 'Kaki bukit', description: 'Wajib lapor sebelum mendaki. Tersedia peta jalur, sewa tongkat, dan pemandu lokal.', x: 446, y: 228 },
+  { region: 'pendakian', name: 'Jalur Pendakian Puncak', type: 'trekking', services: ['Trekking'], tag: 'Jalur utama', description: 'Jalur setapak 2,8 km berkelok di lereng bukit. Tingkat kesulitan sedang, ±2 jam ke puncak.', x: 380, y: 196 },
+  { region: 'pendakian', name: 'Spot Foto Lereng Kabut', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Lereng tengah', description: 'Tikungan jalur dengan latar kabut tipis dan siluet gunung di kejauhan.', x: 360, y: 166 },
+  { region: 'pendakian', name: 'Hutan Lindung Manud Jaya', type: 'trekking', services: ['Trekking', 'Spot Foto'], tag: 'Hutan pinus merah', description: 'Hutan pinus berdaun kemerahan yang dilindungi warga. Jalur interpretasi 1 km bersama pemandu.', x: 276, y: 300 },
+  { region: 'pendakian', name: 'Papan Interpretasi Hutan', type: 'info', services: ['Fasilitas Umum'], tag: 'Gerbang hutan', description: 'Papan edukasi flora dan fauna hutan lindung, titik kumpul sebelum jelajah hutan.', x: 352, y: 326 },
+  { region: 'pendakian', name: 'Shelter Pendaki Pinus', type: 'saung', services: ['Trekking'], tag: 'Tepi hutan barat', description: 'Shelter kayu untuk beristirahat dan berteduh, tersedia air minum isi ulang.', x: 236, y: 276 },
+  { region: 'pendakian', name: 'Toilet & Mushola Pos Pendakian', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Dekat pos registrasi', description: 'Toilet bersih dan mushola kecil sebelum memulai pendakian.', x: 420, y: 300 },
 
-  // 2 · Area Sawah Terasering Bawah & Alur Sungai
-  { region: 'sawah-bawah', name: 'Alur Sungai Cihaur', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Hilir terasering', description: 'Aliran sungai jernih berbatu yang membelah terasering bawah. Sejuk untuk bermain air.', x: 470, y: 612 },
-  { region: 'sawah-bawah', name: 'Leuwi Seuseupan (Kolam Alami)', type: 'foto', services: ['Spot Foto'], tag: 'Kolam alami', description: 'Lubuk sungai yang tenang dengan air kehijauan, cocok untuk berendam kaki.', x: 522, y: 642 },
-  { region: 'sawah-bawah', name: 'Saung Lesehan Pinggir Sungai', type: 'saung', services: ['Kuliner'], tag: 'Tepi sungai', description: 'Makan siang lesehan dengan ikan bakar kolam dan sambal dadak di tepi aliran sungai.', x: 566, y: 576 },
-  { region: 'sawah-bawah', name: 'Jalur Susur Sungai', type: 'trekking', services: ['Trekking'], tag: 'Jalur sungai', description: 'Susur sungai sepanjang 1 km bersama pemandu, melewati batuan dan kebun bambu.', x: 500, y: 546 },
-  { region: 'sawah-bawah', name: 'Sawah Terasering Bawah', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Teras bawah', description: 'Petak sawah bertingkat yang menghijau di musim tanam dan menguning jelang panen.', x: 410, y: 586 },
-  { region: 'sawah-bawah', name: 'Toilet Umum Leuwi', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Dekat kolam', description: 'Toilet dan ruang bilas untuk pengunjung yang bermain air di sungai.', x: 592, y: 620 },
-  { region: 'sawah-bawah', name: 'Kincir Bambu Ngagugulung', type: 'foto', services: ['Spot Foto'], tag: 'Saluran irigasi', description: 'Kincir air bambu tradisional yang mengalirkan air ke sawah, ikon foto terasering bawah.', x: 536, y: 508 },
+  // 2 · Air Terjun Curug Kabut Sendang
+  { region: 'air-terjun', name: 'Curug Kabut Sendang', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Curug utama', description: 'Air terjun utama setinggi 25 m yang selalu berselimut kabut tipis, ikon Desa Manud Jaya.', x: 412, y: 458 },
+  { region: 'air-terjun', name: 'Curug Atas Manud', type: 'foto', services: ['Spot Foto'], tag: 'Hulu curug', description: 'Curug pertama yang jatuh dari tebing hutan, paling indah disinari matahari pagi.', x: 166, y: 334 },
+  { region: 'air-terjun', name: 'Kolam Alami Leuwi Sendang', type: 'foto', services: ['Spot Foto'], tag: 'Kolam atas', description: 'Kolam batu berair jernih yang aman untuk berendam, kedalaman sekitar 1 m.', x: 204, y: 388 },
+  { region: 'air-terjun', name: 'Kolam Bawah Curug', type: 'foto', services: ['Spot Foto'], tag: 'Kolam tengah', description: 'Kolam bertingkat di bawah curug kedua, favorit keluarga untuk bermain air.', x: 288, y: 470 },
+  { region: 'air-terjun', name: 'Jalur Hutan Ungu', type: 'trekking', services: ['Trekking', 'Spot Foto'], tag: 'Hutan barat', description: 'Jalur setapak di antara pepohonan berdaun ungu menuju tepi tebing curug atas.', x: 108, y: 396 },
+  { region: 'air-terjun', name: 'Jembatan Kayu Sendang', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Hilir curug', description: 'Jembatan kayu melintasi aliran curug, penghubung ke area sawah terasering.', x: 392, y: 540 },
+  { region: 'air-terjun', name: 'Pos Penjaga Curug', type: 'info', services: ['Fasilitas Umum'], tag: 'Tepi kolam', description: 'Petugas jaga dan pelampung pinjaman. Buka setiap hari 07.00–16.30.', x: 246, y: 436 },
+  { region: 'air-terjun', name: 'Ruang Bilas & Toilet Curug', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Dekat kolam bawah', description: 'Ruang bilas, toilet, dan loker untuk pengunjung yang berendam.', x: 330, y: 512 },
 
-  // 3 · Homestay & Pemukiman Warga
-  { region: 'homestay', name: 'Homestay Saung Bambu', type: 'homestay', services: ['Homestay'], tag: 'RT 02 · Blok Luhur', description: 'Rumah panggung bambu dua kamar dengan teras menghadap sawah. Termasuk sarapan nasi liwet.', x: 372, y: 202 },
-  { region: 'homestay', name: 'Homestay Abah Ujang', type: 'homestay', services: ['Homestay'], tag: 'RT 02 · Blok Luhur', description: 'Menginap bersama keluarga petani, ikut menanam padi dan memberi makan ikan di kolam.', x: 432, y: 250 },
-  { region: 'homestay', name: 'Homestay Bale Sunda', type: 'homestay', services: ['Homestay'], tag: 'RT 03 · Blok Tengah', description: 'Rumah adat Sunda julang ngapak untuk 4–6 orang, dekat sanggar kesenian.', x: 486, y: 286 },
-  { region: 'homestay', name: 'Homestay Teh Euis', type: 'homestay', services: ['Homestay', 'Kuliner'], tag: 'RT 03 · Blok Tengah', description: 'Homestay bersih dengan kelas memasak masakan Sunda bersama tuan rumah.', x: 536, y: 232 },
-  { region: 'homestay', name: 'Homestay Lembur Kuring', type: 'homestay', services: ['Homestay'], tag: 'RT 04 · Blok Hilir', description: 'Kamar sederhana dan nyaman, cocok untuk rombongan pelajar dan live-in.', x: 426, y: 332 },
-  { region: 'homestay', name: 'Homestay Imah Panggung', type: 'homestay', services: ['Homestay'], tag: 'RT 04 · Blok Hilir', description: 'Rumah panggung kayu dengan kolong untuk bersantai, dekat jalur menuju sungai.', x: 506, y: 346 },
-  { region: 'homestay', name: 'Homestay Pinggir Sawah', type: 'homestay', services: ['Homestay', 'Spot Foto'], tag: 'Dekat pematang', description: 'Bangun pagi langsung disambut kabut tipis di atas terasering.', x: 404, y: 296 },
-  { region: 'homestay', name: 'Warung Kopi Abah Odon', type: 'kuliner', services: ['Kuliner'], tag: 'Jalan kampung', description: 'Kopi tubruk robusta Cililin dan gorengan hangat, tempat warga berkumpul sore hari.', x: 590, y: 272 },
-  { region: 'homestay', name: 'Pos Informasi Desa Wisata', type: 'info', services: ['Fasilitas Umum'], tag: 'Balai desa', description: 'Pemesanan homestay, paket wisata, dan pemandu. Buka setiap hari 07.00–17.00.', x: 586, y: 426 },
-  { region: 'homestay', name: 'Area Parkir Pemukiman', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Lapangan RW', description: 'Parkir motor dan mobil kecil untuk tamu homestay. Dijaga pemuda setempat.', x: 540, y: 396 },
-  { region: 'homestay', name: 'Mushola Al-Ikhlas', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Tengah kampung', description: 'Mushola warga dengan tempat wudu dan toilet umum yang terawat.', x: 470, y: 396 },
-  { region: 'homestay', name: 'Gapura Selamat Datang Batulayang', type: 'foto', services: ['Spot Foto'], tag: 'Ujung kampung', description: 'Gapura kayu berukir dengan papan nama desa, spot foto pertama para pengunjung.', x: 556, y: 182 },
+  // 3 · Konservasi Bunga Langka
+  { region: 'konservasi', name: 'Taman Konservasi Edelweiss Manud', type: 'foto', services: ['Spot Foto'], tag: 'Taman utama', description: 'Petak edelweiss jawa yang dibudidayakan untuk konservasi. Dilarang memetik, boleh berfoto.', x: 560, y: 272 },
+  { region: 'konservasi', name: 'Rumah Kaca Bunga Langka', type: 'info', services: ['Spot Foto', 'Fasilitas Umum'], tag: 'Rumah kaca', description: 'Koleksi anggrek hutan dan kantong semar yang dirawat dalam rumah kaca.', x: 656, y: 214 },
+  { region: 'konservasi', name: 'Kebun Raya Mini Manud Jaya', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Sisi timur', description: 'Kebun koleksi tanaman pegunungan dengan jalur edukasi berpapan nama.', x: 736, y: 256 },
+  { region: 'konservasi', name: 'Pembibitan Flora Pegunungan', type: 'kerajinan', services: ['Kerajinan'], tag: 'Area pembibitan', description: 'Ikut menanam bibit dan membawa pulang pot kecil hasil semai sendiri.', x: 606, y: 312 },
+  { region: 'konservasi', name: 'Papan Edukasi Konservasi', type: 'info', services: ['Fasilitas Umum'], tag: 'Pintu masuk taman', description: 'Informasi jenis bunga langka dan aturan berkunjung di area konservasi.', x: 514, y: 246 },
+  { region: 'konservasi', name: 'Saung Pengamatan Kupu-kupu', type: 'saung', services: ['Spot Foto'], tag: 'Taman bunga', description: 'Saung kecil untuk mengamati kupu-kupu yang hinggap di bunga liar.', x: 690, y: 300 },
+  { region: 'konservasi', name: 'Toilet Area Konservasi', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Sisi barat', description: 'Toilet dan wastafel untuk pengunjung taman konservasi.', x: 480, y: 280 },
 
-  // 4 · Balai Kerajinan & Sanggar Budaya
-  { region: 'kerajinan', name: 'Sanggar Anyaman Bambu', type: 'kerajinan', services: ['Kerajinan'], tag: 'Jalur sungai timur', description: 'Belajar menganyam boboko, nyiru, dan tas bambu bersama perajin. Sesi 90 menit.', x: 650, y: 506 },
-  { region: 'kerajinan', name: 'Balai Kerajinan Batulayang', type: 'kerajinan', services: ['Kerajinan', 'Fasilitas Umum'], tag: 'Bawah bale riung', description: 'Galeri dan toko hasil kerajinan warga: anyaman, ukiran kayu, dan batik tulis.', x: 690, y: 476 },
-  { region: 'kerajinan', name: 'Sanggar Seni Calung & Angklung', type: 'sanggar', services: ['Kerajinan', 'Spot Foto'], tag: 'Dekat jembatan', description: 'Latihan dan pertunjukan calung setiap Sabtu sore. Pengunjung boleh ikut bermain.', x: 612, y: 526 },
-  { region: 'kerajinan', name: 'Jembatan Kayu Cihaur', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Penyeberangan sungai', description: 'Jembatan kayu melengkung di atas sungai, menghubungkan kampung dengan area kuliner.', x: 630, y: 550 },
-  { region: 'kerajinan', name: 'Galeri Batik Cililin', type: 'kerajinan', services: ['Kerajinan'], tag: 'Jalur sungai tengah', description: 'Batik tulis bermotif padi dan bambu khas Batulayang. Tersedia kelas membatik singkat.', x: 498, y: 441 },
-  { region: 'kerajinan', name: 'Padepokan Wayang Golek', type: 'sanggar', services: ['Kerajinan'], tag: 'Jalur sungai barat', description: 'Melihat proses membuat wayang golek dan menonton pentas mini dalang muda.', x: 414, y: 393 },
-  { region: 'kerajinan', name: 'Toilet & Mushola Balai', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Belakang galeri', description: 'Fasilitas toilet dan mushola untuk pengunjung balai dan sanggar.', x: 706, y: 532 },
+  // 4 · Sawah Terasering & Kebun Petik
+  { region: 'sawah-kebun', name: 'Sawah Terasering Manud', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Terasering utama', description: 'Undakan sawah keemasan menjelang panen, paling indah sekitar pukul 16.30.', x: 596, y: 418 },
+  { region: 'sawah-kebun', name: 'Gazebo Pandang Terasering', type: 'foto', services: ['Spot Foto'], tag: 'Puncak undakan', description: 'Gazebo kayu di tepi terasering, favorit untuk foto keluarga dan prewedding.', x: 640, y: 448 },
+  { region: 'sawah-kebun', name: 'Saung Petani Edukasi Tanam Padi', type: 'saung', services: ['Trekking', 'Kuliner'], tag: 'Teras tengah', description: 'Belajar menanam padi bersama petani, ditutup makan liwet di saung.', x: 516, y: 466 },
+  { region: 'sawah-kebun', name: 'Jalur Pematang Sawah', type: 'trekking', services: ['Trekking'], tag: 'Pematang bawah', description: 'Jalan santai menyusuri pematang sawah hingga tepi sungai, sekitar 1,5 km.', x: 500, y: 532 },
+  { region: 'sawah-kebun', name: 'Alur Sungai Pedesaan', type: 'foto', services: ['Spot Foto'], tag: 'Hilir sawah', description: 'Sungai kecil berbatu yang mengairi sawah, latar foto khas pedesaan.', x: 452, y: 612 },
+  { region: 'sawah-kebun', name: 'Kebun Petik Buah Warga', type: 'kuliner', services: ['Kuliner', 'Spot Foto'], tag: 'Kebun buah', description: 'Petik sendiri jeruk, jambu, dan stroberi musiman. Bayar sesuai timbangan.', x: 612, y: 540 },
+  { region: 'sawah-kebun', name: 'Lapak Sayur Segar', type: 'kuliner', services: ['Kuliner'], tag: 'Kebun sayur', description: 'Sayur organik hasil panen pagi langsung dari kebun warga.', x: 566, y: 598 },
+  { region: 'sawah-kebun', name: 'Kios Buah Musiman', type: 'kuliner', services: ['Kuliner'], tag: 'Ujung kebun', description: 'Kios beratap belang dengan buah segar, jus, dan rujak khas desa.', x: 724, y: 488 },
+  { region: 'sawah-kebun', name: 'Area Parkir Kebun', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Dekat gerbang selatan', description: 'Parkir motor dan mobil kecil untuk pengunjung kebun petik.', x: 618, y: 626 },
 
-  // 5 · Area Kuliner & Warung Lokal
-  { region: 'kuliner', name: 'Warung Liwet Cililin', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Nasi liwet kastrol dengan ikan asin, sambal terasi, dan lalapan segar dari kebun.', x: 790, y: 432 },
-  { region: 'kuliner', name: 'Warung Nasi Timbel Ambu', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Nasi timbel bungkus daun pisang, ayam goreng kampung, dan sayur asem.', x: 860, y: 416 },
-  { region: 'kuliner', name: 'Kedai Bandrek & Bajigur', type: 'kuliner', services: ['Kuliner'], tag: 'Ujung lorong', description: 'Minuman jahe hangat dan bajigur gula aren, pas untuk udara sejuk Batulayang.', x: 830, y: 374 },
-  { region: 'kuliner', name: 'Saung Lesehan Kuliner', type: 'saung', services: ['Kuliner'], tag: 'Taman makan', description: 'Area makan lesehan bersama di bawah pepohonan rindang, muat 40 orang.', x: 766, y: 472 },
-  { region: 'kuliner', name: 'Warung Surabi Oncom', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Surabi tungku tanah liat dengan topping oncom pedas atau kinca gula merah.', x: 904, y: 442 },
-  { region: 'kuliner', name: 'Pusat Oleh-oleh Opak & Ranginang', type: 'kuliner', services: ['Kuliner', 'Kerajinan'], tag: 'Pintu keluar', description: 'Opak, ranginang, dan dodol buatan ibu-ibu PKK, dikemas dalam besek bambu.', x: 846, y: 492 },
-  { region: 'kuliner', name: 'Area Parkir Kuliner', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Sisi timur', description: 'Parkir untuk 30 motor dan 12 mobil, dekat dengan akses dari Bandung.', x: 900, y: 482 },
-  { region: 'kuliner', name: 'Toilet & Mushola Kuliner', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Sisi timur', description: 'Toilet, wastafel, dan mushola yang dekat dengan deretan warung.', x: 934, y: 396 },
-  { region: 'kuliner', name: 'Spot Foto Hutan Pinus', type: 'foto', services: ['Spot Foto', 'Trekking'], tag: 'Hutan belakang', description: 'Jalan setapak di antara pinus dan palem dengan cahaya pagi yang menembus kanopi.', x: 722, y: 192 },
-  { region: 'kuliner', name: 'Bale Riung Warga', type: 'info', services: ['Fasilitas Umum', 'Kerajinan'], tag: 'Pusat komunitas', description: 'Pendopo tempat musyawarah, pentas budaya, dan titik kumpul rombongan wisata.', x: 700, y: 322 },
+  // 5 · Homestay, Kerajinan & Kuliner Lokal
+  { region: 'budaya', name: 'Homestay Bale Manud', type: 'homestay', services: ['Homestay'], tag: 'Blok Kaler', description: 'Rumah panggung kayu dua kamar dengan teras menghadap kebun raya. Termasuk sarapan.', x: 806, y: 304 },
+  { region: 'budaya', name: 'Homestay Pasir Kembang', type: 'homestay', services: ['Homestay'], tag: 'Blok Kaler', description: 'Menginap bersama keluarga petani, ikut memanen sayur di pagi hari.', x: 840, y: 330 },
+  { region: 'budaya', name: 'Homestay Leuit Jaya', type: 'homestay', services: ['Homestay'], tag: 'Blok Tengah', description: 'Rumah adat dengan lumbung padi (leuit) di halaman, muat 4–6 orang.', x: 884, y: 362 },
+  { region: 'budaya', name: 'Homestay Imah Panggung', type: 'homestay', services: ['Homestay'], tag: 'Blok Wetan', description: 'Rumah panggung di ujung kampung dengan pemandangan lembah yang luas.', x: 928, y: 390 },
+  { region: 'budaya', name: 'Homestay Teh Ani', type: 'homestay', services: ['Homestay', 'Kuliner'], tag: 'Dekat tangga kampung', description: 'Homestay bersih dengan kelas memasak masakan Sunda bersama tuan rumah.', x: 700, y: 372 },
+  { region: 'budaya', name: 'Homestay Kebun Kopi', type: 'homestay', services: ['Homestay'], tag: 'Blok Kidul', description: 'Kamar sederhana dan nyaman, cocok untuk rombongan pelajar dan live-in.', x: 880, y: 416 },
+  { region: 'budaya', name: 'Lapak Kerajinan Bambu', type: 'kerajinan', services: ['Kerajinan'], tag: 'Pasar kampung', description: 'Anyaman bambu, caping, dan suvenir kayu buatan perajin Manud Jaya.', x: 770, y: 396 },
+  { region: 'budaya', name: 'Galeri Anyaman Warga', type: 'kerajinan', services: ['Kerajinan'], tag: 'Pasar kampung', description: 'Kelas singkat menganyam besek dan tas pandan, sesi 90 menit.', x: 792, y: 462 },
+  { region: 'budaya', name: 'Sanggar Seni Budaya Manud', type: 'sanggar', services: ['Kerajinan', 'Spot Foto'], tag: 'Alun-alun kampung', description: 'Latihan dan pentas kecapi suling serta jaipong setiap Sabtu sore.', x: 744, y: 438 },
+  { region: 'budaya', name: 'Warung Kuliner Lokal', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Nasi liwet, pepes ikan, dan sambal dadak dengan lalapan dari kebun.', x: 818, y: 426 },
+  { region: 'budaya', name: 'Kedai Kopi Manud', type: 'kuliner', services: ['Kuliner'], tag: 'Lorong warung', description: 'Kopi arabika lereng Bukit Manud dan bandrek hangat, pas untuk udara sejuk.', x: 846, y: 452 },
+  { region: 'budaya', name: 'Pos Informasi Desa Wisata', type: 'info', services: ['Fasilitas Umum'], tag: 'Balai kampung', description: 'Pemesanan homestay, paket wisata, dan pemandu. Buka setiap hari 07.00–17.00.', x: 720, y: 412 },
+  { region: 'budaya', name: 'Area Parkir Kampung', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Sisi timur', description: 'Parkir untuk 30 motor dan 10 mobil tamu homestay, dijaga pemuda setempat.', x: 904, y: 456 },
+  { region: 'budaya', name: 'Toilet & Mushola Kampung', type: 'toilet', services: ['Fasilitas Umum'], tag: 'Tengah kampung', description: 'Mushola warga dengan tempat wudu dan toilet umum yang terawat.', x: 932, y: 424 },
 
   // 6 · Akses dari Cililin
-  { region: 'akses-cililin', name: 'Terminal Angkot Cililin', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Gerbang selatan', description: 'Titik turun angkot jurusan Cililin–Batulayang. Beroperasi 05.30–18.00.', x: 628, y: 677 },
-  { region: 'akses-cililin', name: 'Pos Informasi Gerbang Selatan', type: 'info', services: ['Fasilitas Umum'], tag: 'Gerbang selatan', description: 'Peta cetak, tiket paket wisata, dan penitipan barang untuk pengunjung.', x: 652, y: 668 },
-  { region: 'akses-cililin', name: 'Pangkalan Ojek Wisata', type: 'parkir', services: ['Fasilitas Umum', 'Trekking'], tag: 'Gerbang selatan', description: 'Ojek warga untuk mengantar ke titik awal trekking dan homestay.', x: 668, y: 688 },
+  { region: 'akses-cililin', name: 'Terminal Angkot Cililin', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Gerbang barat', description: 'Titik turun angkot jurusan Cililin–Manud Jaya. Beroperasi 05.30–18.00.', x: 202, y: 586 },
+  { region: 'akses-cililin', name: 'Pos Informasi Gerbang Barat', type: 'info', services: ['Fasilitas Umum'], tag: 'Gerbang barat', description: 'Peta cetak, tiket masuk curug, dan penitipan barang untuk pengunjung.', x: 220, y: 578 },
+  { region: 'akses-cililin', name: 'Pangkalan Ojek Wisata', type: 'parkir', services: ['Fasilitas Umum', 'Trekking'], tag: 'Gerbang barat', description: 'Ojek warga untuk mengantar ke curug, pos pendakian, dan homestay.', x: 226, y: 594 },
 
-  // 7 · Akses dari Bandung
-  { region: 'akses-bandung', name: 'Gerbang Utama Batulayang', type: 'info', services: ['Fasilitas Umum', 'Spot Foto'], tag: 'Gerbang timur', description: 'Gerbang utama dari arah Bandung–Padalarang dengan papan selamat datang.', x: 912, y: 512 },
-  { region: 'akses-bandung', name: 'Parkir Bus & Mobil Pengunjung', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Gerbang timur', description: 'Parkir luas untuk bus pariwisata dan mobil pribadi, dijaga 24 jam.', x: 932, y: 504 },
-  { region: 'akses-bandung', name: 'Halte Shuttle Desa Wisata', type: 'info', services: ['Fasilitas Umum'], tag: 'Gerbang timur', description: 'Shuttle gratis keliling desa setiap 30 menit pada akhir pekan.', x: 940, y: 522 },
+  // 7 · Akses dari Padalarang
+  { region: 'akses-padalarang', name: 'Gerbang Utama Manud Jaya', type: 'info', services: ['Fasilitas Umum', 'Spot Foto'], tag: 'Gerbang selatan', description: 'Gerbang utama dari arah Padalarang–Bandung dengan papan selamat datang.', x: 624, y: 692 },
+  { region: 'akses-padalarang', name: 'Parkir Bus & Mobil Pengunjung', type: 'parkir', services: ['Fasilitas Umum'], tag: 'Gerbang selatan', description: 'Parkir luas untuk bus pariwisata dan mobil pribadi, dijaga 24 jam.', x: 642, y: 686 },
+  { region: 'akses-padalarang', name: 'Halte Shuttle Desa Wisata', type: 'info', services: ['Fasilitas Umum'], tag: 'Gerbang selatan', description: 'Shuttle gratis keliling desa setiap 30 menit pada akhir pekan.', x: 648, y: 702 },
 ]
 
 /* Elemen langit (awan) yang dipotong menjadi layer sendiri. */
 export const SKY = [
-  { id: 'awan-1', drift: 'bob', patch: null, points: [[360,72],[368,56],[390,46],[420,44],[446,50],[466,62],[472,80],[456,94],[410,96],[372,92]] },
-  { id: 'awan-2', drift: 'drift', patch: '#41ADED', points: [[712,98],[716,86],[730,78],[750,80],[760,92],[756,102],[730,104]] },
-  { id: 'awan-3', drift: 'drift', patch: '#44AFEF', points: [[760,114],[770,92],[796,80],[822,62],[862,56],[892,70],[902,94],[926,104],[942,126],[936,152],[892,158],[856,150],[838,132],[798,130],[768,128]] },
-  { id: 'awan-4', drift: 'drift', patch: '#5BC1F2', points: [[60,280],[64,264],[84,254],[112,250],[136,258],[146,276],[138,288],[92,289],[66,288]] },
+  { id: 'awan-1', drift: 'drift', patch: '#9BC1ED', points: [[733,92],[738,84],[748,82],[756,86],[764,88],[772,94],[768,100],[740,100]] },
+  { id: 'awan-2', drift: 'drift', patch: '#A0C4EE', points: [[785,94],[796,80],[816,74],[840,70],[852,62],[872,60],[892,66],[902,78],[908,90],[924,102],[926,114],[940,130],[949,138],[940,145],[908,144],[876,130],[870,124],[876,112],[820,106],[796,102]] },
 ]
 
 export const SERVICES = ['Trekking', 'Homestay', 'Kuliner', 'Kerajinan', 'Spot Foto', 'Fasilitas Umum']
@@ -192,55 +190,55 @@ export const STRIP_TYPES = ['foto', 'saung', 'toilet', 'parkir', 'info', 'trekki
 export const QUOTA_UPDATED_AT = '07.00 WIB'
 
 export const QUOTAS = {
-  'sawah-atas': {
+  pendakian: {
+    unit: 'pendaki',
+    sessions: [
+      { label: 'Pendakian Sunrise', time: '03.30–09.00', capacity: 50, booked: 44 },
+      { label: 'Pendakian Siang', time: '08.00–14.00', capacity: 70, booked: 38 },
+    ],
+    note: 'Pendaki wajib registrasi di pos dan turun sebelum pukul 16.00.',
+  },
+  'air-terjun': {
     unit: 'pengunjung',
     sessions: [
-      { label: 'Trekking Pagi', time: '06.00–10.00', capacity: 60, booked: 48 },
-      { label: 'Trekking Sore', time: '14.00–18.00', capacity: 60, booked: 31 },
+      { label: 'Sesi Pagi', time: '07.00–11.00', capacity: 80, booked: 52 },
+      { label: 'Sesi Siang', time: '12.00–16.30', capacity: 80, booked: 74 },
     ],
-    note: 'Jumlah pendaki dibatasi untuk menjaga pematang sawah tetap utuh.',
+    note: 'Kolam ditutup sementara bila debit air naik setelah hujan deras.',
   },
-  'sawah-bawah': {
+  konservasi: {
     unit: 'pengunjung',
     sessions: [
-      { label: 'Susur Sungai Pagi', time: '08.00–11.00', capacity: 40, booked: 22 },
-      { label: 'Susur Sungai Siang', time: '13.00–16.00', capacity: 40, booked: 37 },
+      { label: 'Tur Edukasi Rumah Kaca', time: '09.00–10.30', capacity: 25, booked: 25 },
+      { label: 'Kunjungan Taman Bebas', time: '08.00–16.00', capacity: 100, booked: 41 },
     ],
-    note: 'Susur sungai wajib didampingi pemandu lokal dan memakai pelampung.',
+    note: 'Jumlah pengunjung dibatasi agar tanaman langka tidak terinjak.',
   },
-  homestay: {
-    unit: 'kamar',
-    sessions: [
-      { label: 'Kamar Homestay', time: 'Check-in 14.00', capacity: 24, booked: 21 },
-      { label: 'Saung Menginap', time: 'Check-in 15.00', capacity: 6, booked: 6 },
-    ],
-    note: 'Pemesanan menginap paling lambat H-1 melalui pengelola desa.',
-  },
-  kerajinan: {
+  'sawah-kebun': {
     unit: 'peserta',
     sessions: [
-      { label: 'Kelas Anyaman Bambu', time: '09.00–11.00', capacity: 20, booked: 20 },
-      { label: 'Kelas Membatik', time: '13.00–15.00', capacity: 20, booked: 9 },
+      { label: 'Edukasi Tanam Padi', time: '08.00–11.00', capacity: 30, booked: 17 },
+      { label: 'Petik Buah & Sayur', time: '09.00–15.00', capacity: 90, booked: 63 },
     ],
-    note: 'Bahan praktik sudah termasuk; hasil karya boleh dibawa pulang.',
+    note: 'Hasil petik dibayar sesuai timbangan; keranjang disediakan.',
   },
-  kuliner: {
-    unit: 'kursi',
+  budaya: {
+    unit: 'kamar',
     sessions: [
-      { label: 'Makan Siang Lesehan', time: '11.00–14.00', capacity: 120, booked: 64 },
-      { label: 'Makan Malam', time: '17.00–20.00', capacity: 80, booked: 18 },
+      { label: 'Kamar Homestay', time: 'Check-in 14.00', capacity: 28, booked: 23 },
+      { label: 'Rumah Panggung Rombongan', time: 'Check-in 14.00', capacity: 6, booked: 6 },
     ],
-    note: 'Rombongan di atas 20 orang mohon reservasi lebih dulu.',
+    note: 'Pemesanan menginap paling lambat H-1 melalui pengelola desa.',
   },
   'akses-cililin': {
     unit: 'slot parkir',
     sessions: [
-      { label: 'Parkir Mobil', time: '06.00–21.00', capacity: 30, booked: 12 },
-      { label: 'Parkir Motor', time: '06.00–21.00', capacity: 80, booked: 41 },
+      { label: 'Parkir Mobil', time: '06.00–21.00', capacity: 25, booked: 9 },
+      { label: 'Parkir Motor', time: '06.00–21.00', capacity: 70, booked: 33 },
     ],
-    note: 'Jalur Cililin menanjak; kendaraan besar disarankan lewat gerbang Bandung.',
+    note: 'Jalan dari Cililin menanjak; bus pariwisata disarankan lewat Padalarang.',
   },
-  'akses-bandung': {
+  'akses-padalarang': {
     unit: 'slot parkir',
     sessions: [
       { label: 'Parkir Mobil', time: '24 jam', capacity: 40, booked: 34 },
