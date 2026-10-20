@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth'
-import { collection, doc, getDocs, orderBy, query, updateDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc } from 'firebase/firestore'
 import { STATUS_LABEL, filterReservations } from '../lib/admin'
 import { auth, db } from '../lib/firebase'
-import { todayISO } from '../lib/reservation'
+import { fetchQuota, todayISO } from '../lib/reservation'
 
 const AUTH_ERROR = {
   'auth/invalid-credential': 'Email atau password salah.',
@@ -175,6 +175,7 @@ function Dashboard({ user }) {
   const [quotaInfo, setQuotaInfo] = useState(null)
   const [quotaNotice, setQuotaNotice] = useState(null)
   const [quotaBusy, setQuotaBusy] = useState(false)
+  const quotaEdited = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -205,16 +206,29 @@ function Dashboard({ user }) {
 
   useEffect(() => {
     let active = true
-    fetch(`/api/quota?tanggal=${encodeURIComponent(quotaTanggal)}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('HTTP'))))
-      .then((data) => {
-        if (!active) return
-        setQuotaInfo(data)
-        setQuotaLimit(data.limit)
-      })
-      .catch(() => {
+    ;(async () => {
+      try {
+        const snap = await getDoc(doc(db, 'quotas', quotaTanggal))
+        const limit = snap.exists() ? Number(snap.data().limit) : 100
+        if (active) {
+          setQuotaInfo({ tanggal: quotaTanggal, limit })
+          if (!quotaEdited.current) setQuotaLimit(limit)
+        }
+      } catch {
         if (active) setQuotaInfo({ error: true, tanggal: quotaTanggal })
-      })
+        return
+      }
+      // ponytail: hitungan terpakai tetap dari backend; kalau mati, limit Firestore tetap tampil.
+      try {
+        const fresh = await fetchQuota(quotaTanggal)
+        if (active) {
+          setQuotaInfo(fresh)
+          if (!quotaEdited.current) setQuotaLimit(fresh.limit)
+        }
+      } catch {
+        // backend opsional
+      }
+    })()
     return () => {
       active = false
     }
@@ -267,27 +281,19 @@ function Dashboard({ user }) {
     event.preventDefault()
     setQuotaNotice(null)
     setQuotaBusy(true)
+    const limit = Number(quotaLimit)
     try {
-      const token = await user.getIdToken()
-      const res = await fetch('/api/quota', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ tanggal: quotaTanggal, limit: Number(quotaLimit) }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || !data.tanggal || !data.limit) {
-        throw new Error(data.error ?? 'Pengaturan kuota butuh backend berjalan.')
+      await setDoc(doc(db, 'quotas', quotaTanggal), { tanggal: quotaTanggal, limit })
+      setQuotaInfo({ tanggal: quotaTanggal, limit })
+      setQuotaNotice({ ok: true, text: `Kuota ${quotaTanggal} diset ${limit} orang.` })
+      try {
+        const fresh = await fetchQuota(quotaTanggal)
+        setQuotaInfo(fresh)
+      } catch {
+        // tanpa backend, info terpakai tidak tersedia
       }
-      setQuotaNotice({ ok: true, text: `Kuota ${data.tanggal} diset ${data.limit} orang.` })
-      const fresh = await fetch(`/api/quota?tanggal=${encodeURIComponent(quotaTanggal)}`)
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null)
-      if (fresh) setQuotaInfo(fresh)
-    } catch (err) {
-      setQuotaNotice({
-        ok: false,
-        text: err.message === 'Failed to fetch' ? 'Backend tidak terjangkau.' : err.message,
-      })
+    } catch {
+      setQuotaNotice({ ok: false, text: 'Gagal menyimpan kuota. Pastikan akun ini admin.' })
     } finally {
       setQuotaBusy(false)
     }
@@ -367,6 +373,7 @@ function Dashboard({ user }) {
                 setQuotaTanggal(event.target.value)
                 setQuotaInfo(null)
                 setQuotaNotice(null)
+                quotaEdited.current = false
               }}
               className={inputClass}
             />
@@ -381,7 +388,10 @@ function Dashboard({ user }) {
               min="1"
               required
               value={quotaLimit}
-              onChange={(event) => setQuotaLimit(event.target.value)}
+              onChange={(event) => {
+                setQuotaLimit(event.target.value)
+                quotaEdited.current = true
+              }}
               className={inputClass}
             />
           </div>
@@ -395,12 +405,15 @@ function Dashboard({ user }) {
         </form>
         {quotaInfo && !quotaInfo.error && quotaInfo.tanggal === quotaTanggal && (
           <p className="mt-3 text-sm text-ink-700">
-            Terpakai {quotaInfo.used} dari {quotaInfo.limit} orang ({quotaInfo.remaining}{' '}
-            tersisa).
+            {typeof quotaInfo.used === 'number'
+              ? `Terpakai ${quotaInfo.used} dari ${quotaInfo.limit} orang (${quotaInfo.remaining} tersisa).`
+              : `Batas kuota: ${quotaInfo.limit} orang. Hitungan terpakai butuh backend.`}
           </p>
         )}
         {quotaInfo?.error && (
-          <p className="mt-3 text-sm text-ink-700">Pengaturan kuota butuh backend berjalan.</p>
+          <p className="mt-3 text-sm text-ink-700">
+            Gagal memuat kuota. Pastikan akun ini admin.
+          </p>
         )}
         {quotaNotice && (
           <p

@@ -7,7 +7,6 @@ import {
   readQuotaLimit,
   readReservation,
   readReservations,
-  saveQuotaLimit,
   saveReservation,
   sumPaxByDate,
 } from '../models/reservationModel.js'
@@ -79,23 +78,6 @@ export async function getQuota(req, res) {
     remaining: Math.max(0, limit - used),
     full: used >= limit,
   })
-}
-
-export async function setQuota(req, res) {
-  if (!(await adminGuard(req, res))) return
-
-  const body = await readJsonBody(req)
-  const tanggal = String(body.tanggal ?? '')
-  const limit = Number(body.limit)
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) {
-    return sendJson(res, 400, { error: 'Tanggal wajib berformat YYYY-MM-DD.' })
-  }
-  if (!Number.isInteger(limit) || limit < 1) {
-    return sendJson(res, 400, { error: 'Kuota harus bilangan bulat minimal 1.' })
-  }
-
-  await saveQuotaLimit(tanggal, limit)
-  sendJson(res, 200, { tanggal, limit })
 }
 
 export async function notifyReservation(req, res) {

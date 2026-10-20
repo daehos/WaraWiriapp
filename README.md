@@ -88,7 +88,6 @@ Belum diumumkan.
 - `GET /api/reservations` — daftar semua reservasi
 - `POST /api/reservations` — buat reservasi baru (validasi di server)
 - `GET /api/quota?tanggal=YYYY-MM-DD` — sisa kuota harian (default 100)
-- `POST /api/quota` — atur kuota tanggal tertentu, body `{ tanggal, limit }` (butuh token admin)
 - `POST /api/notify` — kirim email approve/reject (butuh token admin)
 
 ---
@@ -226,7 +225,8 @@ Hasilnya: **`https://warawiriapp-da23e.web.app`** — setiap push ke `main` auto
 Catatan:
 
 - Kuota gratis Spark: 10 GB storage, 360 MB/hari transfer — lebih dari cukup.
-- Fitur **kuota harian** dan **email notifikasi** butuh backend berjalan; di hosting statis murni keduanya nonaktif (form tetap bisa submit, admin tetap bisa approve/reject). Deploy backend ke Cloud Run bila ingin aktif di produksi.
+- Pengaturan **kuota per tanggal** disimpan langsung dari dashboard admin ke Firestore (`quotas/{YYYY-MM-DD}`) — tetap jalan tanpa backend.
+- Hitungan **sisa kuota** di form dan **email notifikasi** butuh backend berjalan; di hosting statis murni keduanya nonaktif (form tetap bisa submit dengan batas default 100, admin tetap bisa approve/reject). Deploy backend ke Cloud Run bila ingin aktif di produksi.
 - Kalau workflow gagal `403 (hosting)` → service account butuh role **Firebase Hosting Admin** di Google Cloud Console → IAM.
 - Kalau gagal `site not found` → buka Firebase Console → **Hosting → Get started** sekali untuk membuat site.
 - Limitasi: tanpa backend, proteksi anti-spam hanya dari rules (format & panjang data) — belum ada rate limit per pengunjung.

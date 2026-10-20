@@ -10,13 +10,7 @@ export async function readQuotaLimit(tanggal) {
   const doc = await db.collection(QUOTA_COLLECTION).doc(tanggal).get()
   const limit = doc.exists ? Number(doc.data().limit) : 0
   return Number.isInteger(limit) && limit > 0 ? limit : DEFAULT_QUOTA
-}
-
-export async function saveQuotaLimit(tanggal, limit) {
-  await db.collection(QUOTA_COLLECTION).doc(tanggal).set({ tanggal, limit })
-}
-
-export async function readReservations() {
+}export async function readReservations() {
   const snap = await db.collection(COLLECTION).orderBy('createdAt', 'desc').get()
   return snap.docs.map((doc) => doc.data())
 }

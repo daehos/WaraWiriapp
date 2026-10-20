@@ -3,7 +3,6 @@ import {
   getQuota,
   listReservations,
   notifyReservation,
-  setQuota,
 } from '../controllers/reservationsController.js'
 import { sendJson } from '../http.js'
 
@@ -11,7 +10,6 @@ export async function handleReservationRoute(req, res) {
   const { pathname } = new URL(req.url, 'http://localhost')
   if (pathname === '/api/quota') {
     if (req.method === 'GET') return getQuota(req, res)
-    if (req.method === 'POST') return setQuota(req, res)
     return sendJson(res, 405, { error: 'Method tidak diizinkan.' })
   }
   if (pathname === '/api/notify') {
