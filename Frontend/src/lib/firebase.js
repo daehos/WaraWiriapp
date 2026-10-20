@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 // Konfigurasi publik Firebase — memang dirancang untuk diketahui browser (bukan rahasia).
@@ -12,4 +13,7 @@ const firebaseConfig = {
   appId: '1:135310768297:web:c48c0e502edf103c2451b8',
 }
 
-export const db = getFirestore(initializeApp(firebaseConfig))
+const app = initializeApp(firebaseConfig)
+
+export const db = getFirestore(app)
+export const auth = getAuth(app)

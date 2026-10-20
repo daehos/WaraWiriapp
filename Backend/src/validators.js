@@ -25,6 +25,13 @@ export function validateReservation(values) {
     }
   }
 
+  const email = (values.email ?? '').trim()
+  if (email && !EMAIL_RE.test(email)) {
+    errors.email = 'Format email tidak valid.'
+  } else if (email.length > 100) {
+    errors.email = 'Email terlalu panjang (maks. 100 karakter).'
+  }
+
   const tanggal = (values.tanggal ?? '').trim()
   if (!tanggal) {
     errors.tanggal = 'Tanggal kunjungan wajib dipilih.'

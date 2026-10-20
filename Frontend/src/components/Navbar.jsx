@@ -23,12 +23,20 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
-        <a
-          href="#kontak"
-          className="rounded-full bg-forest-700 px-4 py-2 text-sm font-semibold text-sand-50 transition hover:bg-forest-900"
-        >
-          Hubungi Kami
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href="/admin"
+            className="rounded-full border border-forest-100 px-4 py-2 text-sm font-semibold text-forest-700 transition hover:bg-forest-100"
+          >
+            Admin
+          </a>
+          <a
+            href="#kontak"
+            className="rounded-full bg-forest-700 px-4 py-2 text-sm font-semibold text-sand-50 transition hover:bg-forest-900"
+          >
+            Hubungi Kami
+          </a>
+        </div>
       </nav>
     </header>
   )

@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
-import { submitReservation, todayISO, validateReservation } from '../lib/reservation'
+import { useEffect, useRef, useState } from 'react'
+import { fetchQuota, submitReservation, todayISO, validateReservation } from '../lib/reservation'
 import { village } from '../data/village'
 
-const EMPTY = { nama: '', kontak: '', tanggal: '', pax: '', jenisWisata: '' }
+const EMPTY = { nama: '', kontak: '', email: '', tanggal: '', pax: '', jenisWisata: '' }
 
 // ponytail: dihitung sekali saat load, bukan tiap render — validasi tanggal yang
 // benar-benar menentukan tetap di validateReservation() saat submit.
@@ -36,8 +36,22 @@ export default function ReservationSection() {
   const [sending, setSending] = useState(false)
   const [formError, setFormError] = useState('')
   const [confirmation, setConfirmation] = useState(null)
+  const [quota, setQuota] = useState(null)
 
   const jenisOptions = village.reservation.jenisWisata
+
+  useEffect(() => {
+    if (!values.tanggal) return
+    let cancelled = false
+    fetchQuota(values.tanggal)
+      .then((q) => !cancelled && setQuota(q))
+      .catch(() => !cancelled && setQuota(null))
+    return () => {
+      cancelled = true
+    }
+  }, [values.tanggal])
+
+  const quotaForDate = quota?.tanggal === values.tanggal ? quota : null
 
   const setField = (name) => (event) => {
     setValues((current) => ({ ...current, [name]: event.target.value }))
@@ -217,6 +231,29 @@ export default function ReservationSection() {
               )}
             </div>
 
+            <div>
+              <label htmlFor="reservasi-email" className="text-sm font-semibold text-forest-700">
+                Email (opsional){' '}
+                <span className="font-normal text-ink-700">— untuk notifikasi</span>
+              </label>
+              <input
+                id="reservasi-email"
+                name="email"
+                type="email"
+                value={values.email}
+                onChange={setField('email')}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'error-email' : undefined}
+                placeholder="nama@email.com"
+                className={`mt-1 ${fieldClass(errors.email)}`}
+              />
+              {errors.email && (
+                <p id="error-email" className="mt-1 text-sm text-clay-600">
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label
@@ -241,6 +278,16 @@ export default function ReservationSection() {
                     {errors.tanggal}
                   </p>
                 )}
+                {quotaForDate &&
+                  (quotaForDate.full ? (
+                    <p role="alert" className="mt-1 text-sm font-semibold text-clay-600">
+                      Kuota habis untuk tanggal ini. Pilih tanggal lain.
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-sm text-forest-700">
+                      Sisa kuota: {quotaForDate.remaining} dari {quotaForDate.limit} orang.
+                    </p>
+                  ))}
               </div>
 
               <div>
@@ -301,7 +348,7 @@ export default function ReservationSection() {
 
             <button
               type="submit"
-              disabled={sending}
+              disabled={sending || quotaForDate?.full}
               className="w-full rounded-full bg-forest-700 px-6 py-3.5 text-sm font-semibold text-sand-50 transition hover:bg-forest-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {sending ? 'Mengirim…' : 'Kirim permintaan reservasi'}

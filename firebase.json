@@ -2,7 +2,8 @@
   "hosting": {
     "public": "Frontend/dist",
     "ignore": ["**/.*", "**/node_modules/**"],
-    "cleanUrls": true
+    "cleanUrls": true,
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
   },
   "firestore": {
     "rules": "firestore.rules"

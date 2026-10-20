@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { todayISO, validateReservation } from './reservation.js'
+import { hasQuota, todayISO, validateReservation } from './reservation.js'
 
 const JENIS = ['Trekking Sawah', 'Budaya & Kerajinan', 'Homestay']
 
@@ -51,6 +51,19 @@ test('jenis wisata optional, tapi harus terdaftar jika diisi', () => {
   assert.ok(validateReservation({ ...base, jenisWisata: 'Paralayang' }, JENIS).jenisWisata)
 })
 
+test('email notifikasi optional, tapi harus valid jika diisi', () => {
+  assert.equal(validateReservation({ ...base, email: '' }, JENIS).email, undefined)
+  assert.equal(validateReservation({ ...base, email: 'budi@mail.com' }, JENIS).email, undefined)
+  assert.ok(validateReservation({ ...base, email: 'bukan-email' }, JENIS).email)
+})
+
 test('todayISO memakai tanggal lokal, bukan UTC', () => {
   assert.match(todayISO(new Date(2026, 0, 5)), /^2026-01-05$/)
+})
+
+test('hasQuota memblokir jika total pax melebihi batas harian', () => {
+  assert.equal(hasQuota(0, 100, 5), true)
+  assert.equal(hasQuota(96, 100, 4), true)
+  assert.equal(hasQuota(97, 100, 4), false)
+  assert.equal(hasQuota(100, 100, 1), false)
 })

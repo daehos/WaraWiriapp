@@ -26,6 +26,11 @@ export function validateReservation(values, jenisWisataOptions = []) {
     }
   }
 
+  const email = (values.email ?? '').trim()
+  if (email && !EMAIL_RE.test(email)) {
+    errors.email = 'Format email tidak valid.'
+  }
+
   const tanggal = (values.tanggal ?? '').trim()
   if (!tanggal) {
     errors.tanggal = 'Tanggal kunjungan wajib dipilih.'
@@ -57,6 +62,16 @@ export function createId(date = new Date()) {
   return `WWR-${stamp}-${rand}`
 }
 
+export function hasQuota(used, limit, pax) {
+  return used + pax <= limit
+}
+
+export async function fetchQuota(tanggal) {
+  const res = await fetch(`/api/quota?tanggal=${encodeURIComponent(tanggal)}`)
+  if (!res.ok) throw new Error('Gagal memuat kuota harian.')
+  return res.json()
+}
+
 export async function submitReservation(values) {
   const errors = validateReservation(values)
   if (Object.keys(errors).length > 0) {
@@ -65,11 +80,30 @@ export async function submitReservation(values) {
     throw error
   }
 
+  // ponytail: cek kuota best-effort lewat API backend. Kalau backend tidak ada
+  // (hosting statis murni), submit tetap jalan; penegakan keras butuh transaksi server.
+  let quota = null
+  try {
+    quota = await fetchQuota(values.tanggal)
+  } catch {
+    quota = null
+  }
+
+  if (quota && !hasQuota(quota.used, quota.limit, Number(values.pax))) {
+    const message = quota.full
+      ? 'Kuota habis untuk tanggal ini. Silakan pilih tanggal lain.'
+      : `Sisa kuota tanggal ini ${quota.remaining} orang. Kurangi jumlah pengunjung atau pilih tanggal lain.`
+    const error = new Error(message)
+    error.fields = { tanggal: message }
+    throw error
+  }
+
   const entry = {
     id: createId(),
     status: 'menunggu-konfirmasi',
     nama: values.nama.trim(),
     kontak: values.kontak.trim().replace(/[\s-]/g, ''),
+    email: values.email.trim().toLowerCase() || null,
     tanggal: values.tanggal,
     pax: Number(values.pax),
     jenisWisata: values.jenisWisata.trim() || null,

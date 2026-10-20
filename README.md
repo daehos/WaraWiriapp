@@ -41,7 +41,34 @@ Acceptance criteria (AC) diumumkan bertahap per-sprint oleh tim, jadi bagian ini
 
 Aturan tambahan: tanggal kunjungan **minimal besok** (tidak boleh hari ini), kontak harus nomor HP Indonesia atau email, jumlah pax bilangan bulat ≥ 1.
 
-### Sprint 3 dan seterusnya
+### Sprint 3 — Dashboard Admin
+
+| # | Acceptance Criteria | Status |
+|---|---|---|
+| 1 | Login admin (email + password) dengan pesan gagal login | ✅ Selesai — Firebase Auth |
+| 2 | Reset password lewat link yang dikirim ke email | ✅ Selesai — `sendPasswordResetEmail` |
+| 3 | Tabel reservasi Pending / Approved / Rejected | ✅ Selesai — `/admin` |
+| 4 | Tampilan identitas wisatawan dan jumlah peserta | ✅ Selesai |
+| 5 | Aksi Approve / Reject tersimpan ke database | ✅ Selesai |
+| 6 | Pencarian nama/kontak dan filter tanggal kunjungan | ✅ Selesai |
+| 7 | Notifikasi email ke wisatawan saat approve/reject | ✅ Selesai — SMTP, butuh backend jalan |
+
+**Setup dashboard admin (sekali saja):**
+
+1. Firebase Console → **Authentication → Get started → Sign-in method** → aktifkan **Email/Password**
+2. Buat akun admin + custom claim dari folder `Backend/`:
+   ```bash
+   npm run make-admin -- admin@email.com
+   ```
+   (akun dibuat otomatis dengan password sementara yang dicetak; kalau akun sudah ada, hanya claim yang dipasang)
+3. Publish ulang `firestore.rules` (Console → Firestore → Rules → Publish)
+4. Buka `/admin` di situs (lokal: `http://localhost:5173/admin`)
+
+**Email notifikasi approve/reject (opsional):**
+
+Isi SMTP di `Backend/.env` (contoh Gmail App Password ada di `.env.example`), lalu jalankan backend. Tanpa SMTP, status tetap tersimpan tetapi email tidak terkirim (dashboard menampilkan alasannya). Email dikirim ke kolom **Email** pada form reservasi; kalau kosong, dicoba ke kolom kontak bila formatnya email. Notifikasi butuh backend berjalan — di hosting statis murni fitur ini tidak aktif.
+
+### Sprint 4 dan seterusnya
 
 Belum diumumkan.
 
@@ -54,12 +81,15 @@ Belum diumumkan.
 - Tailwind CSS v4
 - React Leaflet + OpenStreetMap untuk peta lokasi (gratis, tanpa API key)
 
-**Backend** (`Backend/`) — API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models) + `firebase-admin` untuk membaca data di Firestore. **Opsional di produksi** — formulir reservasi menulis langsung dari browser ke Firestore (lihat bagian Deploy); backend dipakai untuk baca data admin secara lokal dan migrasi data lama.
+**Backend** (`Backend/`) — API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models) + `firebase-admin` untuk membaca data di Firestore. **Opsional di produksi** — formulir reservasi menulis langsung dari browser ke Firestore (lihat bagian Deploy); backend dipakai untuk baca data admin secara lokal, migrasi data lama, cek kuota harian, dan kirim email notifikasi.
 
 **Frontend** menulis reservasi langsung ke Firestore lewat Firebase Web SDK — validasi form ada di client, validasi kedua ada di [security rules](firestore.rules).
 
 - `GET /api/reservations` — daftar semua reservasi
 - `POST /api/reservations` — buat reservasi baru (validasi di server)
+- `GET /api/quota?tanggal=YYYY-MM-DD` — sisa kuota harian (default 100)
+- `POST /api/quota` — atur kuota tanggal tertentu, body `{ tanggal, limit }` (butuh token admin)
+- `POST /api/notify` — kirim email approve/reject (butuh token admin)
 
 ---
 
@@ -196,7 +226,7 @@ Hasilnya: **`https://warawiriapp-da23e.web.app`** — setiap push ke `main` auto
 Catatan:
 
 - Kuota gratis Spark: 10 GB storage, 360 MB/hari transfer — lebih dari cukup.
-- Frontend **tidak lagi memanggil `/api`** di produksi; backend cukup jalan di laptop untuk baca data admin.
+- Fitur **kuota harian** dan **email notifikasi** butuh backend berjalan; di hosting statis murni keduanya nonaktif (form tetap bisa submit, admin tetap bisa approve/reject). Deploy backend ke Cloud Run bila ingin aktif di produksi.
 - Kalau workflow gagal `403 (hosting)` → service account butuh role **Firebase Hosting Admin** di Google Cloud Console → IAM.
 - Kalau gagal `site not found` → buka Firebase Console → **Hosting → Get started** sekali untuk membuat site.
 - Limitasi: tanpa backend, proteksi anti-spam hanya dari rules (format & panjang data) — belum ada rate limit per pengunjung.
