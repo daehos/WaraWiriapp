@@ -12,16 +12,16 @@ const base = {
 test('reservasi disetujui memakai flag is_approved', () => {
   const params = buildTemplateParams({ ...base, status: 'dikonfirmasi' })
   assert.equal(params.status, 'Disetujui')
-  assert.equal(params.is_approved, true)
-  assert.equal(params.is_declined, false)
+  assert.equal(params.is_approved, 'true')
+  assert.equal(params.is_declined, '')
   assert.match(params.title, /WWR-20260101-120000-ABCD/)
 })
 
 test('reservasi ditolak memakai flag is_declined', () => {
   const params = buildTemplateParams({ ...base, status: 'ditolak' })
   assert.equal(params.status, 'Ditolak')
-  assert.equal(params.is_approved, false)
-  assert.equal(params.is_declined, true)
+  assert.equal(params.is_approved, '')
+  assert.equal(params.is_declined, 'true')
 })
 
 test('isEmail hanya menerima format email', () => {

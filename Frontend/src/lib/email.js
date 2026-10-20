@@ -14,8 +14,9 @@ export function buildTemplateParams(reservation) {
     name: reservation.nama,
     title: `WaraWiri Village - ${reservation.id}`,
     status: approved ? 'Disetujui' : 'Ditolak',
-    is_approved: approved,
-    is_declined: !approved,
+    // EmailJS only supports {{flag}}...{{/flag}} conditionals, not Handlebars {{#if}}.
+    is_approved: approved ? 'true' : '',
+    is_declined: approved ? '' : 'true',
     tanggal_kunjungan: reservation.tanggal,
     waktu_kunjungan: 'Sesuai jam operasional',
     lokasi_gedung_ruangan: 'Desa Wisata Manud Jaya, Kecamatan Cililin',
