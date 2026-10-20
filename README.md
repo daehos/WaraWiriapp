@@ -51,7 +51,7 @@ Aturan tambahan: tanggal kunjungan **minimal besok** (tidak boleh hari ini), kon
 | 4 | Tampilan identitas wisatawan dan jumlah peserta | ✅ Selesai |
 | 5 | Aksi Approve / Reject tersimpan ke database | ✅ Selesai |
 | 6 | Pencarian nama/kontak dan filter tanggal kunjungan | ✅ Selesai |
-| 7 | Notifikasi email ke wisatawan saat approve/reject | ✅ Selesai — SMTP, butuh backend jalan |
+| 7 | Notifikasi email ke wisatawan saat approve/reject | ✅ Selesai — EmailJS, tanpa backend |
 
 **Setup dashboard admin (sekali saja):**
 
@@ -64,9 +64,17 @@ Aturan tambahan: tanggal kunjungan **minimal besok** (tidak boleh hari ini), kon
 3. Publish ulang `firestore.rules` (Console → Firestore → Rules → Publish)
 4. Buka `/admin` di situs (lokal: `http://localhost:5173/admin`)
 
-**Email notifikasi approve/reject (opsional):**
+**Email notifikasi approve/reject (EmailJS, tanpa backend):**
 
-Isi SMTP di `Backend/.env` (contoh Gmail App Password ada di `.env.example`), lalu jalankan backend. Tanpa SMTP, status tetap tersimpan tetapi email tidak terkirim (dashboard menampilkan alasannya). Email dikirim ke kolom **Email** pada form reservasi; kalau kosong, dicoba ke kolom kontak bila formatnya email. Notifikasi butuh backend berjalan — di hosting statis murni fitur ini tidak aktif.
+1. Buat akun di [emailjs.com](https://dashboard.emailjs.com/admin), lalu sambungkan email pengirim sebagai **Service**.
+2. Buat **Template** dengan variabel berikut:
+   - **To Email**: `{{to_email}}`
+   - **Subject**: `Update Reservasi Kunjungan: {{title}} - {{status}}`
+   - **Body**: gunakan variabel `name`, `title`, `status`, `is_approved`, `is_declined`, `tanggal_kunjungan`, `waktu_kunjungan`, `lokasi_gedung_ruangan`, `jumlah_orang`, `alasan_penolakan`.
+3. Service ID, Template ID, dan Public Key sudah tertanam di `Frontend/src/lib/email.js` (nilai publik, memang dipakai dari browser).
+4. Wajib: batasi **Allowed Origins** di dashboard EmailJS ke `localhost:5173` dan `warawiriapp-da23e.web.app`.
+
+Email dikirim ke kolom **Email**; kalau kosong, dicoba ke kontak bila formatnya email. Status tetap tersimpan walau email gagal (dashboard menampilkan alasannya). Backend SMTP (`POST /api/notify`) masih tersedia bila backend di-deploy, tetapi frontend memakai EmailJS.
 
 ### Sprint 4 dan seterusnya
 
@@ -81,7 +89,7 @@ Belum diumumkan.
 - Tailwind CSS v4
 - React Leaflet + OpenStreetMap untuk peta lokasi (gratis, tanpa API key)
 
-**Backend** (`Backend/`) — API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models) + `firebase-admin` untuk membaca data di Firestore. **Opsional di produksi** — formulir reservasi menulis langsung dari browser ke Firestore (lihat bagian Deploy); backend dipakai untuk baca data admin secara lokal, migrasi data lama, dan kirim email notifikasi.
+**Backend** (`Backend/`) — API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models) + `firebase-admin` untuk membaca data di Firestore. **Opsional di produksi** — formulir reservasi menulis langsung dari browser ke Firestore (lihat bagian Deploy); backend dipakai untuk baca data admin secara lokal, migrasi data lama, dan opsi kirim email via SMTP.
 
 **Frontend** menulis reservasi langsung ke Firestore lewat Firebase Web SDK — validasi form ada di client, validasi kedua ada di [security rules](firestore.rules).
 
@@ -227,7 +235,7 @@ Catatan:
 
 - Kuota gratis Spark: 10 GB storage, 360 MB/hari transfer — lebih dari cukup.
 - **Kuota per tanggal** sepenuhnya serverless: admin set `limit`, pengunjung menaikkan `used` lewat transaksi, ditolak = counter turun. Tetap jalan tanpa backend.
-- **Email notifikasi** butuh backend berjalan; di hosting statis murni email nonaktif (status tetap bisa diubah). Deploy backend ke Cloud Run bila ingin aktif di produksi.
+- **Email notifikasi** memakai EmailJS dari browser admin (config publik tertanam di `Frontend/src/lib/email.js`), jadi tetap aktif di hosting statis tanpa backend.
 - Counter kuota divalidasi rules, tapi client yang sengaja memakai batch (bukan transaksi) masih bisa memicu lost-update — untuk desa wisata risikonya kecil.
 - Kalau workflow gagal `403 (hosting)` → service account butuh role **Firebase Hosting Admin** di Google Cloud Console → IAM.
 - Kalau gagal `site not found` → buka Firebase Console → **Hosting → Get started** sekali untuk membuat site.

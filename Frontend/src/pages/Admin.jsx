@@ -17,6 +17,7 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import { STATUS_LABEL, filterReservations } from '../lib/admin'
+import { sendStatusEmail } from '../lib/email'
 import { auth, db } from '../lib/firebase'
 import { todayISO } from '../lib/reservation'
 
@@ -240,6 +241,7 @@ function Dashboard({ user }) {
   const count = (status) => filtered.filter((r) => r.status === status).length
 
   async function setStatus(id, status) {
+    const reservation = rows.find((r) => r.id === id)
     setSavingId(id)
     setError('')
     setNotice(null)
@@ -281,28 +283,13 @@ function Dashboard({ user }) {
     }
     setSavingId('')
 
-    // ponytail: email best-effort lewat backend; status tetap tersimpan walau gagal.
-    try {
-      const token = await user.getIdToken()
-      const res = await fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ id }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok && data.sent) {
-        setNotice({ ok: true, text: `Status tersimpan. Email notifikasi terkirim ke ${data.to}.` })
-      } else {
-        setNotice({
-          ok: false,
-          text: `Status tersimpan, email tidak terkirim: ${data.reason ?? data.error ?? 'backend tidak terjangkau'}`,
-        })
-      }
-    } catch {
-      setNotice({
-        ok: false,
-        text: 'Status tersimpan, tetapi layanan email tidak terjangkau (backend tidak berjalan?).',
-      })
+    // ponytail: email best-effort; status tetap tersimpan walau gagal.
+    if (!reservation) return
+    const info = await sendStatusEmail({ ...reservation, status })
+    if (info.sent) {
+      setNotice({ ok: true, text: `Status tersimpan. Email notifikasi terkirim ke ${info.to}.` })
+    } else {
+      setNotice({ ok: false, text: `Status tersimpan, email tidak terkirim: ${info.reason}` })
     }
   }
 
