@@ -4,11 +4,9 @@ import { app } from '../firebase.js'
 import { sendStatusEmail } from '../mail.js'
 import {
   createId,
-  readQuotaLimit,
+  createReservationWithQuota,
   readReservation,
   readReservations,
-  saveReservation,
-  sumPaxByDate,
 } from '../models/reservationModel.js'
 import { validateReservation } from '../validators.js'
 
@@ -53,31 +51,20 @@ export async function createReservation(req, res) {
     createdAt: new Date().toISOString(),
   }
 
-  await saveReservation(entry)
+  try {
+    await createReservationWithQuota(entry)
+  } catch (error) {
+    if (error.code === 'quota-exceeded') {
+      return sendJson(res, 409, { error: error.message })
+    }
+    throw error
+  }
   sendJson(res, 201, entry)
 }
 
 export async function listReservations(req, res) {
   const reservations = await readReservations()
   sendJson(res, 200, { count: reservations.length, reservations })
-}
-
-export async function getQuota(req, res) {
-  const { searchParams } = new URL(req.url, 'http://localhost')
-  const tanggal = searchParams.get('tanggal') ?? ''
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) {
-    return sendJson(res, 400, { error: 'Parameter tanggal wajib berformat YYYY-MM-DD.' })
-  }
-
-  const used = await sumPaxByDate(tanggal)
-  const limit = await readQuotaLimit(tanggal)
-  sendJson(res, 200, {
-    tanggal,
-    used,
-    limit,
-    remaining: Math.max(0, limit - used),
-    full: used >= limit,
-  })
 }
 
 export async function notifyReservation(req, res) {

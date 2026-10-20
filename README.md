@@ -81,14 +81,15 @@ Belum diumumkan.
 - Tailwind CSS v4
 - React Leaflet + OpenStreetMap untuk peta lokasi (gratis, tanpa API key)
 
-**Backend** (`Backend/`) — API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models) + `firebase-admin` untuk membaca data di Firestore. **Opsional di produksi** — formulir reservasi menulis langsung dari browser ke Firestore (lihat bagian Deploy); backend dipakai untuk baca data admin secara lokal, migrasi data lama, cek kuota harian, dan kirim email notifikasi.
+**Backend** (`Backend/`) — API Node.js **tanpa framework** (`node:http` stdlib) dengan struktur MVC (routes/controllers/models) + `firebase-admin` untuk membaca data di Firestore. **Opsional di produksi** — formulir reservasi menulis langsung dari browser ke Firestore (lihat bagian Deploy); backend dipakai untuk baca data admin secara lokal, migrasi data lama, dan kirim email notifikasi.
 
 **Frontend** menulis reservasi langsung ke Firestore lewat Firebase Web SDK — validasi form ada di client, validasi kedua ada di [security rules](firestore.rules).
 
 - `GET /api/reservations` — daftar semua reservasi
-- `POST /api/reservations` — buat reservasi baru (validasi di server)
-- `GET /api/quota?tanggal=YYYY-MM-DD` — sisa kuota harian (default 100)
+- `POST /api/reservations` — buat reservasi baru (validasi + kuota di server)
 - `POST /api/notify` — kirim email approve/reject (butuh token admin)
+
+Kuota per tanggal disimpan di `quotas/{YYYY-MM-DD}` (`limit`, `used`) — bisa dibaca publik, dan `used` hanya bisa naik sebesar `pax` reservasi baru lewat transaksi (dijaga security rules).
 
 ---
 
@@ -225,8 +226,9 @@ Hasilnya: **`https://warawiriapp-da23e.web.app`** — setiap push ke `main` auto
 Catatan:
 
 - Kuota gratis Spark: 10 GB storage, 360 MB/hari transfer — lebih dari cukup.
-- Pengaturan **kuota per tanggal** disimpan langsung dari dashboard admin ke Firestore (`quotas/{YYYY-MM-DD}`) — tetap jalan tanpa backend.
-- Hitungan **sisa kuota** di form dan **email notifikasi** butuh backend berjalan; di hosting statis murni keduanya nonaktif (form tetap bisa submit dengan batas default 100, admin tetap bisa approve/reject). Deploy backend ke Cloud Run bila ingin aktif di produksi.
+- **Kuota per tanggal** sepenuhnya serverless: admin set `limit`, pengunjung menaikkan `used` lewat transaksi, ditolak = counter turun. Tetap jalan tanpa backend.
+- **Email notifikasi** butuh backend berjalan; di hosting statis murni email nonaktif (status tetap bisa diubah). Deploy backend ke Cloud Run bila ingin aktif di produksi.
+- Counter kuota divalidasi rules, tapi client yang sengaja memakai batch (bukan transaksi) masih bisa memicu lost-update — untuk desa wisata risikonya kecil.
 - Kalau workflow gagal `403 (hosting)` → service account butuh role **Firebase Hosting Admin** di Google Cloud Console → IAM.
 - Kalau gagal `site not found` → buka Firebase Console → **Hosting → Get started** sekali untuk membuat site.
 - Limitasi: tanpa backend, proteksi anti-spam hanya dari rules (format & panjang data) — belum ada rate limit per pengunjung.

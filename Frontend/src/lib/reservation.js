@@ -1,4 +1,4 @@
-import { doc, setDoc } from 'firebase/firestore'
+import { doc, getDoc, runTransaction } from 'firebase/firestore'
 import { db } from './firebase.js'
 
 const PHONE_RE = /^(\+62|62|0)8[1-9][0-9]{6,11}$/
@@ -66,10 +66,13 @@ export function hasQuota(used, limit, pax) {
   return used + pax <= limit
 }
 
+// ponytail: kuota disimpan sebagai counter `quotas/{tanggal}`; dibaca langsung
+// dari Firestore supaya tetap jalan tanpa backend.
 export async function fetchQuota(tanggal) {
-  const res = await fetch(`/api/quota?tanggal=${encodeURIComponent(tanggal)}`)
-  if (!res.ok) throw new Error('Gagal memuat kuota harian.')
-  return res.json()
+  const snap = await getDoc(doc(db, 'quotas', tanggal))
+  const limit = snap.exists() ? Number(snap.data().limit) || 100 : 100
+  const used = snap.exists() ? Number(snap.data().used ?? 0) : 0
+  return { tanggal, limit, used, remaining: Math.max(0, limit - used), full: used >= limit }
 }
 
 export async function submitReservation(values) {
@@ -110,9 +113,39 @@ export async function submitReservation(values) {
     createdAt: new Date().toISOString(),
   }
 
+  // Counter kuota + reservasi ditulis atomik. Transaksi Firestore mendeteksi
+  // konflik (dua orang submit bersamaan) lalu rules memvalidasi batas kuota.
   try {
-    await setDoc(doc(db, 'reservations', entry.id), entry)
-  } catch {
+    await runTransaction(db, async (tx) => {
+      const quotaRef = doc(db, 'quotas', entry.tanggal)
+      const snap = await tx.get(quotaRef)
+      const limit = snap.exists() ? Number(snap.data().limit) || 100 : 100
+      const used = snap.exists() ? Number(snap.data().used ?? 0) : 0
+
+      if (!hasQuota(used, limit, entry.pax)) {
+        const message = used >= limit
+          ? 'Kuota habis untuk tanggal ini. Silakan pilih tanggal lain.'
+          : `Sisa kuota tanggal ini ${Math.max(0, limit - used)} orang. Kurangi jumlah pengunjung atau pilih tanggal lain.`
+        const error = new Error(message)
+        error.fields = { tanggal: message }
+        error.quota = true
+        throw error
+      }
+
+      tx.set(doc(db, 'reservations', entry.id), entry)
+      tx.set(
+        quotaRef,
+        {
+          tanggal: entry.tanggal,
+          limit,
+          used: used + entry.pax,
+          lastReservationId: entry.id,
+        },
+        { merge: true },
+      )
+    })
+  } catch (err) {
+    if (err.quota) throw err
     const error = new Error('Reservasi gagal dikirim. Coba lagi sebentar lagi.')
     error.fields = null
     throw error

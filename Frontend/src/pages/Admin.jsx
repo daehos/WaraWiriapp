@@ -5,10 +5,20 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth'
-import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  runTransaction,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore'
 import { STATUS_LABEL, filterReservations } from '../lib/admin'
 import { auth, db } from '../lib/firebase'
-import { fetchQuota, todayISO } from '../lib/reservation'
+import { todayISO } from '../lib/reservation'
 
 const AUTH_ERROR = {
   'auth/invalid-credential': 'Email atau password salah.',
@@ -172,7 +182,8 @@ function Dashboard({ user }) {
   const [notice, setNotice] = useState(null)
   const [quotaTanggal, setQuotaTanggal] = useState(todayISO())
   const [quotaLimit, setQuotaLimit] = useState(100)
-  const [quotaInfo, setQuotaInfo] = useState(null)
+  const [quotaUsed, setQuotaUsed] = useState(0)
+  const [quotaError, setQuotaError] = useState(false)
   const [quotaNotice, setQuotaNotice] = useState(null)
   const [quotaBusy, setQuotaBusy] = useState(false)
   const quotaEdited = useRef(false)
@@ -209,24 +220,14 @@ function Dashboard({ user }) {
     ;(async () => {
       try {
         const snap = await getDoc(doc(db, 'quotas', quotaTanggal))
-        const limit = snap.exists() ? Number(snap.data().limit) : 100
-        if (active) {
-          setQuotaInfo({ tanggal: quotaTanggal, limit })
-          if (!quotaEdited.current) setQuotaLimit(limit)
+        if (!active) return
+        setQuotaError(false)
+        setQuotaUsed(snap.exists() ? Number(snap.data().used ?? 0) : 0)
+        if (!quotaEdited.current) {
+          setQuotaLimit(snap.exists() ? Number(snap.data().limit) : 100)
         }
       } catch {
-        if (active) setQuotaInfo({ error: true, tanggal: quotaTanggal })
-        return
-      }
-      // ponytail: hitungan terpakai tetap dari backend; kalau mati, limit Firestore tetap tampil.
-      try {
-        const fresh = await fetchQuota(quotaTanggal)
-        if (active) {
-          setQuotaInfo(fresh)
-          if (!quotaEdited.current) setQuotaLimit(fresh.limit)
-        }
-      } catch {
-        // backend opsional
+        if (active) setQuotaError(true)
       }
     })()
     return () => {
@@ -243,8 +244,36 @@ function Dashboard({ user }) {
     setError('')
     setNotice(null)
     try {
-      await updateDoc(doc(db, 'reservations', id), { status })
+      if (status === 'ditolak') {
+        // tolak = kembalikan kuota; status + counter ditulis atomik.
+        await runTransaction(db, async (tx) => {
+          const rRef = doc(db, 'reservations', id)
+          const rSnap = await tx.get(rRef)
+          if (!rSnap.exists()) throw new Error('Reservasi tidak ditemukan.')
+          const data = rSnap.data()
+          const qRef = doc(db, 'quotas', data.tanggal)
+          const qSnap = await tx.get(qRef)
+          const limit = qSnap.exists() ? Number(qSnap.data().limit) || 100 : 100
+          const used = qSnap.exists() ? Number(qSnap.data().used ?? 0) : 0
+          tx.update(rRef, { status })
+          if (data.status !== 'ditolak') {
+            tx.set(
+              qRef,
+              {
+                tanggal: data.tanggal,
+                limit,
+                used: Math.max(0, used - (Number(data.pax) || 0)),
+              },
+              { merge: true },
+            )
+          }
+        })
+      } else {
+        await updateDoc(doc(db, 'reservations', id), { status })
+      }
       setRows((current) => current.map((r) => (r.id === id ? { ...r, status } : r)))
+      const q = await getDoc(doc(db, 'quotas', quotaTanggal)).catch(() => null)
+      if (q) setQuotaUsed(q.exists() ? Number(q.data().used ?? 0) : 0)
     } catch {
       setError('Gagal menyimpan perubahan status. Coba lagi.')
       setSavingId('')
@@ -283,15 +312,12 @@ function Dashboard({ user }) {
     setQuotaBusy(true)
     const limit = Number(quotaLimit)
     try {
-      await setDoc(doc(db, 'quotas', quotaTanggal), { tanggal: quotaTanggal, limit })
-      setQuotaInfo({ tanggal: quotaTanggal, limit })
+      await setDoc(
+        doc(db, 'quotas', quotaTanggal),
+        { tanggal: quotaTanggal, limit },
+        { merge: true },
+      )
       setQuotaNotice({ ok: true, text: `Kuota ${quotaTanggal} diset ${limit} orang.` })
-      try {
-        const fresh = await fetchQuota(quotaTanggal)
-        setQuotaInfo(fresh)
-      } catch {
-        // tanpa backend, info terpakai tidak tersedia
-      }
     } catch {
       setQuotaNotice({ ok: false, text: 'Gagal menyimpan kuota. Pastikan akun ini admin.' })
     } finally {
@@ -371,7 +397,6 @@ function Dashboard({ user }) {
               value={quotaTanggal}
               onChange={(event) => {
                 setQuotaTanggal(event.target.value)
-                setQuotaInfo(null)
                 setQuotaNotice(null)
                 quotaEdited.current = false
               }}
@@ -403,16 +428,14 @@ function Dashboard({ user }) {
             {quotaBusy ? 'Menyimpan…' : 'Simpan kuota'}
           </button>
         </form>
-        {quotaInfo && !quotaInfo.error && quotaInfo.tanggal === quotaTanggal && (
-          <p className="mt-3 text-sm text-ink-700">
-            {typeof quotaInfo.used === 'number'
-              ? `Terpakai ${quotaInfo.used} dari ${quotaInfo.limit} orang (${quotaInfo.remaining} tersisa).`
-              : `Batas kuota: ${quotaInfo.limit} orang. Hitungan terpakai butuh backend.`}
-          </p>
-        )}
-        {quotaInfo?.error && (
+        {quotaError ? (
           <p className="mt-3 text-sm text-ink-700">
             Gagal memuat kuota. Pastikan akun ini admin.
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-ink-700">
+            Terpakai {quotaUsed} dari {quotaLimit} orang (
+            {Math.max(0, Number(quotaLimit) - quotaUsed)} tersisa).
           </p>
         )}
         {quotaNotice && (

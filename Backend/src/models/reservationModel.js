@@ -5,25 +5,34 @@ const QUOTA_COLLECTION = 'quotas'
 
 export const DEFAULT_QUOTA = 100
 
-// ponytail: kuota per tanggal disimpan per-doc; default 100 kalau belum diatur admin.
-export async function readQuotaLimit(tanggal) {
-  const doc = await db.collection(QUOTA_COLLECTION).doc(tanggal).get()
-  const limit = doc.exists ? Number(doc.data().limit) : 0
-  return Number.isInteger(limit) && limit > 0 ? limit : DEFAULT_QUOTA
-}export async function readReservations() {
-  const snap = await db.collection(COLLECTION).orderBy('createdAt', 'desc').get()
-  return snap.docs.map((doc) => doc.data())
+// ponytail: counter `used` dijaga transaksi; admin SDK melewati rules.
+export async function createReservationWithQuota(entry) {
+  const quotaRef = db.collection(QUOTA_COLLECTION).doc(entry.tanggal)
+  const reservationRef = db.collection(COLLECTION).doc(entry.id)
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(quotaRef)
+    const limit = snap.exists ? Number(snap.data().limit) || DEFAULT_QUOTA : DEFAULT_QUOTA
+    const used = snap.exists ? Number(snap.data().used ?? 0) : 0
+
+    if (used + entry.pax > limit) {
+      const error = new Error('Kuota tanggal ini tidak mencukupi.')
+      error.code = 'quota-exceeded'
+      throw error
+    }
+
+    tx.set(reservationRef, entry)
+    tx.set(
+      quotaRef,
+      { tanggal: entry.tanggal, limit, used: used + entry.pax, lastReservationId: entry.id },
+      { merge: true },
+    )
+  })
 }
 
-// ponytail: query + sum per tanggal; ganti ke counter doc kalau koleksi membesar.
-// Reservasi yang ditolak tidak dihitung, jadi kuota tanggal itu terbuka lagi.
-export async function sumPaxByDate(tanggal) {
-  const snap = await db.collection(COLLECTION).where('tanggal', '==', tanggal).get()
-  return snap.docs.reduce((sum, doc) => {
-    const data = doc.data()
-    if (data.status === 'ditolak') return sum
-    return sum + (Number(data.pax) || 0)
-  }, 0)
+export async function readReservations() {
+  const snap = await db.collection(COLLECTION).orderBy('createdAt', 'desc').get()
+  return snap.docs.map((doc) => doc.data())
 }
 
 export async function saveReservation(entry) {

@@ -1,6 +1,5 @@
 import {
   createReservation,
-  getQuota,
   listReservations,
   notifyReservation,
 } from '../controllers/reservationsController.js'
@@ -8,10 +7,6 @@ import { sendJson } from '../http.js'
 
 export async function handleReservationRoute(req, res) {
   const { pathname } = new URL(req.url, 'http://localhost')
-  if (pathname === '/api/quota') {
-    if (req.method === 'GET') return getQuota(req, res)
-    return sendJson(res, 405, { error: 'Method tidak diizinkan.' })
-  }
   if (pathname === '/api/notify') {
     if (req.method === 'POST') return notifyReservation(req, res)
     return sendJson(res, 405, { error: 'Method tidak diizinkan.' })
