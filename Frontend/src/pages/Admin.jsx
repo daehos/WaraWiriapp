@@ -275,7 +275,9 @@ function Dashboard({ user }) {
         body: JSON.stringify({ tanggal: quotaTanggal, limit: Number(quotaLimit) }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan kuota.')
+      if (!res.ok || !data.tanggal || !data.limit) {
+        throw new Error(data.error ?? 'Pengaturan kuota butuh backend berjalan.')
+      }
       setQuotaNotice({ ok: true, text: `Kuota ${data.tanggal} diset ${data.limit} orang.` })
       const fresh = await fetch(`/api/quota?tanggal=${encodeURIComponent(quotaTanggal)}`)
         .then((r) => (r.ok ? r.json() : null))
