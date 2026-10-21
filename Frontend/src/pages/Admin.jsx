@@ -16,7 +16,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore'
-import { STATUS_LABEL, filterReservations } from '../lib/admin'
+import { STATUS_LABEL, filterReservations, sortReservations } from '../lib/admin'
 import { sendStatusEmail } from '../lib/email'
 import { auth, db } from '../lib/firebase'
 import { todayISO } from '../lib/reservation'
@@ -179,6 +179,7 @@ function Dashboard({ user }) {
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
   const [tanggal, setTanggal] = useState('')
+  const [sorts, setSorts] = useState([])
   const [savingId, setSavingId] = useState('')
   const [notice, setNotice] = useState(null)
   const [quotaTanggal, setQuotaTanggal] = useState(todayISO())
@@ -237,8 +238,54 @@ function Dashboard({ user }) {
   }, [quotaTanggal])
 
   const filtered = filterReservations(rows, { q, tanggal })
+  const sorted = sortReservations(filtered, sorts)
   const totalPax = filtered.reduce((sum, r) => sum + (Number(r.pax) || 0), 0)
   const count = (status) => filtered.filter((r) => r.status === status).length
+
+  function toggleSort(key) {
+    setSorts((current) => {
+      const index = current.findIndex((sort) => sort.key === key)
+      if (index === -1) return [...current, { key, dir: 'asc' }]
+      if (current[index].dir === 'asc') {
+        return current.map((sort, i) => (i === index ? { ...sort, dir: 'desc' } : sort))
+      }
+      return current.filter((_, i) => i !== index)
+    })
+  }
+
+  function sortHeader(key, label) {
+    const index = sorts.findIndex((sort) => sort.key === key)
+    const sort = sorts[index]
+    return (
+      <th
+        key={key}
+        scope="col"
+        aria-sort={index === 0 ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+        className="px-4 py-3"
+      >
+        <button
+          type="button"
+          onClick={() => toggleSort(key)}
+          title={`Urutkan ${label}${
+            sort ? ` (prioritas ${index + 1}, ${sort.dir === 'asc' ? 'naik' : 'turun'})` : ''
+          }`}
+          className={`flex items-center gap-1 font-semibold transition hover:text-forest-900 ${
+            sort ? 'text-forest-900' : ''
+          }`}
+        >
+          {label}
+          {sort && (
+            <span className="inline-flex items-center gap-0.5 text-xs">
+              {sort.dir === 'asc' ? '↑' : '↓'}
+              <span className="rounded-full bg-forest-100 px-1.5 py-0.5 text-[10px] font-bold">
+                {index + 1}
+              </span>
+            </span>
+          )}
+        </button>
+      </th>
+    )
+  }
 
   async function setStatus(id, status) {
     const reservation = rows.find((r) => r.id === id)
@@ -482,21 +529,37 @@ function Dashboard({ user }) {
       {loading ? (
         <p className="mt-10 text-center text-ink-700">Memuat data reservasi…</p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-forest-100 bg-white">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-forest-50 text-forest-700">
-              <tr>
-                <th className="px-4 py-3">Nama</th>
-                <th className="px-4 py-3">Kontak</th>
-                <th className="px-4 py-3">Tanggal</th>
-                <th className="px-4 py-3">Pax</th>
-                <th className="px-4 py-3">Jenis wisata</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((r) => (
+        <>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-700">
+            <p>
+              Klik header untuk mengurutkan. Klik beberapa kolom untuk multi-sort; klik lagi
+              untuk membalik arah, klik ketiga untuk menghapus.
+            </p>
+            {sorts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSorts([])}
+                className="font-semibold text-forest-700 hover:text-forest-900"
+              >
+                Reset urutan
+              </button>
+            )}
+          </div>
+          <div className="mt-3 overflow-x-auto rounded-2xl border border-forest-100 bg-white">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="bg-forest-50 text-forest-700">
+                <tr>
+                  {sortHeader('nama', 'Nama')}
+                  {sortHeader('kontak', 'Kontak')}
+                  {sortHeader('tanggal', 'Tanggal')}
+                  {sortHeader('pax', 'Pax')}
+                  {sortHeader('jenisWisata', 'Jenis wisata')}
+                  {sortHeader('status', 'Status')}
+                  <th scope="col" className="px-4 py-3">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((r) => (
                 <tr key={r.id} className="border-t border-forest-100">
                   <td className="px-4 py-3 font-semibold text-ink-900">{r.nama}</td>
                   <td className="px-4 py-3 text-ink-700">{r.kontak}</td>
@@ -538,16 +601,17 @@ function Dashboard({ user }) {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="px-4 py-10 text-center text-ink-700">
-                    Tidak ada reservasi yang cocok.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                {sorted.length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="px-4 py-10 text-center text-ink-700">
+                      Tidak ada reservasi yang cocok.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )
