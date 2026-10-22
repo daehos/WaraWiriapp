@@ -48,10 +48,11 @@ export const village = {
   mapLinkHref: 'https://www.google.com/maps?q=-6.9147,107.4478',
   reservation: {
     jenisWisata: [
-      'Trekking sawah terasering',
-      'Kerajinan & budaya warga',
-      'Homestay warga',
-      'Kuliner lokal',
+      'Trekking & Sawah Terasering Atas',
+      'Area Sawah Terasering Bawah & Alur Sungai',
+      'Homestay & Pemukiman Warga',
+      'Balai Kerajinan & Sanggar Budaya',
+      'Akses Kuliner & Warung Lokal',
     ],
   },
 }
