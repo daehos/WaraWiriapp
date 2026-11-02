@@ -93,7 +93,7 @@ Email dikirim ke kolom **Email**; kalau kosong, dicoba ke kontak bila formatnya 
 - Kode manual 6 digit lebih mudah ditebak daripada QR; gunakan hanya sebagai fallback dan petugas tetap mencocokkan nama/tanggal di layar scanner.
 - QR berlaku **00:00–23:59 WIB** pada `tanggal` reservasi.
 - Scan masuk menaikkan `inside` dan `entries`; scan keluar menurunkan `inside` dan menaikkan `exits`. Scan masuk hanya boleh jika `inside < pax`, jadi rombongan bisa keluar-masuk tanpa melebihi jumlah orang.
-- Scanner ada di `/admin/scan` dan butuh login admin. Satu dashboard menampilkan dua panel: **kiri = pintu masuk**, **kanan = pintu keluar**. Dua kamera bisa berjalan bersamaan; scan di satu panel hanya menghentikan kamera panel itu, panel lain tetap live.
+- Scanner ada di `/admin/scan` dan butuh login admin. Satu dashboard menampilkan dua panel: **kiri = pintu masuk**, **kanan = pintu keluar**. Dua kamera bisa berjalan bersamaan dan **tetap live setelah scan** — tidak perlu klik tombol lagi. Hasil scan muncul di bawah preview; QR yang sama baru diproses lagi setelah keluar dari frame sebentar supaya tidak terhitung berulang.
 - Chrome/Edge di desktop bisa membuka dua webcam USB sekaligus. Pilih perangkat untuk tiap panel lewat dropdown **Pilih kamera**; pilihan disimpan di `localStorage` dan dipakai lagi saat halaman dibuka. Kamera yang sama tidak boleh dipakai kedua panel.
 - Jika kamera ditolak/tidak tersedia, setiap panel tetap punya input manual untuk menempel isi QR atau mengetik kode manual 6 digit.
 - Alamat lama `/admin/scan-masuk` dan `/admin/scan-keluar` tetap diarahkan ke dashboard dua panel ini.

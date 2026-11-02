@@ -20,6 +20,7 @@ import {
 } from '../lib/ticket'
 
 const CAMERA_KEY = 'warawiri.scan.cameras'
+const QR_LOST_MS = 1200
 
 const PANELS = {
   masuk: {
@@ -272,6 +273,8 @@ function CameraPanel({
   const [manual, setManual] = useState('')
   const scannerRef = useRef(null)
   const busyRef = useRef(false)
+  const acceptedRawRef = useRef('')
+  const lastSeenAtRef = useRef(0)
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -298,6 +301,8 @@ function CameraPanel({
     setError('')
     setResult(null)
     if (scannerRef.current || starting) return
+    acceptedRawRef.current = ''
+    lastSeenAtRef.current = 0
     if (!cameraId) {
       setError('Pilih kamera untuk panel ini terlebih dahulu.')
       return
@@ -315,8 +320,19 @@ function CameraPanel({
       await scanner.start(
         { deviceId: { exact: cameraId } },
         { fps: 10 },
-        (decoded) => handleScan(decoded),
-        () => {},
+        (decoded) => {
+          lastSeenAtRef.current = Date.now()
+          if (decoded === acceptedRawRef.current) return
+          handleScan(decoded)
+        },
+        () => {
+          if (
+            acceptedRawRef.current &&
+            Date.now() - lastSeenAtRef.current > QR_LOST_MS
+          ) {
+            acceptedRawRef.current = ''
+          }
+        },
       )
       if (mountedRef.current) {
         setCameraOn(true)
@@ -337,13 +353,19 @@ function CameraPanel({
 
   async function handleScan(raw) {
     if (busyRef.current) return
+    acceptedRawRef.current = raw
+    lastSeenAtRef.current = Date.now()
     busyRef.current = true
     setBusy(true)
     setResult(null)
-    await stopCamera()
-    await processTicket(raw)
-    busyRef.current = false
-    if (mountedRef.current) setBusy(false)
+    try {
+      await processTicket(raw)
+    } finally {
+      // Kamera tetap hidup. QR yang sama baru diproses lagi setelah hilang
+      // dari frame sebentar, jadi tidak terhitung berulang.
+      busyRef.current = false
+      if (mountedRef.current) setBusy(false)
+    }
   }
 
   async function resolveTicket(raw) {
@@ -540,14 +562,11 @@ function CameraPanel({
           ) : (
             <p className="mt-1 text-sm">{result.message}</p>
           )}
-          <button
-            type="button"
-            onClick={startCamera}
-            disabled={!canStart}
-            className="mt-3 rounded-full bg-forest-700 px-4 py-2 text-xs font-semibold text-sand-50 transition hover:bg-forest-900 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Scan berikutnya
-          </button>
+          {cameraOn && (
+            <p className="mt-2 text-xs opacity-80">
+              Kamera tetap aktif. Arahkan QR berikutnya.
+            </p>
+          )}
         </div>
       )}
 
