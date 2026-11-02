@@ -1,4 +1,6 @@
 // ponytail: EmailJS client config is public by design (browser SDK); lock it by domain in the dashboard.
+import { buildTicketUrl } from './ticket.js'
+
 const SERVICE_ID = 'service_585vhga'
 const TEMPLATE_ID = 'template_m9m7tsf'
 const PUBLIC_KEY = 'nRFEKnNfwxqkGusmn'
@@ -26,8 +28,13 @@ export function buildTemplateParams(reservation) {
 }
 
 export async function sendStatusEmail(reservation) {
+  const approved = reservation.status === 'dikonfirmasi'
+
   if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
     return { sent: false, reason: 'Email belum dikonfigurasi (EmailJS).' }
+  }
+  if (approved && (!reservation.ticketCode || !reservation.manualCode)) {
+    return { sent: false, reason: 'Tiket belum lengkap (kode QR/manual belum dibuat).' }
   }
 
   const to = isEmail(reservation.email)
@@ -40,6 +47,15 @@ export async function sendStatusEmail(reservation) {
     return { sent: false, reason: 'Pengunjung tidak meninggalkan alamat email.' }
   }
 
+  const origin = typeof window === 'undefined' ? '' : window.location.origin
+  if (approved && !origin) {
+    return { sent: false, reason: 'Alamat situs tiket tidak diketahui.' }
+  }
+  const ticketCode = approved ? reservation.manualCode : ''
+  const ticketUrl = approved
+    ? buildTicketUrl(origin, reservation.id, reservation.ticketCode, reservation.manualCode)
+    : ''
+
   try {
     const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
@@ -48,7 +64,12 @@ export async function sendStatusEmail(reservation) {
         service_id: SERVICE_ID,
         template_id: TEMPLATE_ID,
         user_id: PUBLIC_KEY,
-        template_params: { ...buildTemplateParams(reservation), to_email: to },
+        template_params: {
+          ...buildTemplateParams(reservation),
+          to_email: to,
+          ticket_url: ticketUrl,
+          ticket_code: ticketCode,
+        },
       }),
     })
     if (!res.ok) {

@@ -42,6 +42,17 @@ service cloud.firestore {
         && d.createdAt is string && d.createdAt.size() <= 40;
     }
 
+    // Field tiket hanya ditulis admin: kode QR, waktu terbit, dan counter scan.
+    function validTicketFields(d) {
+      return (!('ticketCode' in d) || (d.ticketCode is string && d.ticketCode.matches('^[a-f0-9]{32}$')))
+        && (!('manualCode' in d) || (d.manualCode is string && d.manualCode.matches('^[0-9]{6}$')))
+        && (!('ticketIssuedAt' in d) || isStr(d.ticketIssuedAt, 1, 40))
+        && (!('lastScanAt' in d) || isStr(d.lastScanAt, 1, 40))
+        && (!('inside' in d) || (d.inside is int && d.inside >= 0 && d.inside <= d.pax))
+        && (!('entries' in d) || (d.entries is int && d.entries >= 0))
+        && (!('exits' in d) || (d.exits is int && d.exits >= 0));
+    }
+
     // Admin = akun Firebase Auth dengan custom claim `admin: true`
     // (dipasang lewat `npm run make-admin -- email@…` di folder Backend).
     function isAdmin() {
@@ -103,9 +114,24 @@ service cloud.firestore {
         && quotaClaimed(reservationId, request.resource.data);
       allow read: if isAdmin();
       allow update: if isAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-        && request.resource.data.status in ['dikonfirmasi', 'ditolak'];
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'ticketCode', 'manualCode', 'ticketIssuedAt', 'inside', 'entries', 'exits', 'lastScanAt'])
+        && request.resource.data.status in ['dikonfirmasi', 'ditolak']
+        && validTicketFields(request.resource.data);
       allow delete: if false;
+    }
+
+    // Peta kode manual 6 digit -> reservasi. Hanya admin (scanner) yang baca/tulis.
+    match /manualCodes/{code} {
+      allow read: if isAdmin() && code.matches('^[0-9]{6}$');
+      allow create: if isAdmin()
+        && code.matches('^[0-9]{6}$')
+        && request.resource.data.keys().hasOnly(['reservationId', 'tanggal'])
+        && request.resource.data.reservationId is string
+        && request.resource.data.reservationId.matches('^WWR-[0-9]{8}-[0-9]{6}-[A-Z0-9]{4}$')
+        && request.resource.data.tanggal is string
+        && request.resource.data.tanggal.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+      allow update, delete: if isAdmin();
     }
 
     match /quotas/{tanggal} {

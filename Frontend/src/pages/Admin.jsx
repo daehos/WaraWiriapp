@@ -14,12 +14,15 @@ import {
   query,
   runTransaction,
   setDoc,
-  updateDoc,
 } from 'firebase/firestore'
 import { STATUS_LABEL, filterReservations, sortReservations } from '../lib/admin'
 import { sendStatusEmail } from '../lib/email'
 import { auth, db } from '../lib/firebase'
 import { todayISO } from '../lib/reservation'
+import { randomManualCode, randomTicketCode } from '../lib/ticket'
+import GateScanner from './GateScanner'
+
+class ManualCodeTaken extends Error {}
 
 const AUTH_ERROR = {
   'auth/invalid-credential': 'Email atau password salah.',
@@ -287,39 +290,133 @@ function Dashboard({ user }) {
     )
   }
 
+  async function ensureTicket(id, { approve = false } = {}) {
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const candidate = randomManualCode()
+      try {
+        return await runTransaction(db, async (tx) => {
+          const ref = doc(db, 'reservations', id)
+          const snap = await tx.get(ref)
+          if (!snap.exists()) throw new Error('Reservasi tidak ditemukan.')
+          const data = snap.data()
+          const ticketCode = data.ticketCode || randomTicketCode()
+          let manualCode = data.manualCode
+
+          if (manualCode) {
+            const codeRef = doc(db, 'manualCodes', manualCode)
+            const codeSnap = await tx.get(codeRef)
+            if (codeSnap.exists() && codeSnap.data().reservationId !== id) {
+              throw new Error('Kode manual tiket bentrok. Hubungi admin.')
+            }
+            if (!codeSnap.exists()) {
+              tx.set(codeRef, { reservationId: id, tanggal: data.tanggal })
+            }
+          } else {
+            manualCode = candidate
+            const codeRef = doc(db, 'manualCodes', manualCode)
+            const codeSnap = await tx.get(codeRef)
+            if (codeSnap.exists()) throw new ManualCodeTaken()
+            tx.set(codeRef, { reservationId: id, tanggal: data.tanggal })
+          }
+
+          const patch = approve ? { status: 'dikonfirmasi' } : {}
+          if (!data.ticketCode) {
+            Object.assign(patch, {
+              ticketCode,
+              ticketIssuedAt: new Date().toISOString(),
+              inside: 0,
+              entries: 0,
+              exits: 0,
+            })
+          }
+          if (!data.manualCode) patch.manualCode = manualCode
+          if (Object.keys(patch).length > 0) tx.update(ref, patch)
+          return { ...data, status: 'dikonfirmasi', ticketCode, manualCode }
+        })
+      } catch (err) {
+        if (err instanceof ManualCodeTaken) continue
+        throw err
+      }
+    }
+    throw new Error('Kode manual tidak tersedia. Coba lagi.')
+  }
+
+  async function deliverTicket(id, { approve = false } = {}) {
+    setSavingId(id)
+    setError('')
+    setNotice(null)
+    let ticket
+    try {
+      ticket = await ensureTicket(id, { approve })
+    } catch {
+      setError('Gagal menerbitkan tiket. Coba lagi.')
+      setSavingId('')
+      return
+    }
+    setRows((current) =>
+      current.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              status: 'dikonfirmasi',
+              ticketCode: ticket.ticketCode,
+              manualCode: ticket.manualCode,
+            }
+          : r,
+      ),
+    )
+
+    try {
+      const info = await sendStatusEmail(ticket)
+      setNotice(
+        info.sent
+          ? { ok: true, text: `Tiket terkirim ke ${info.to}.` }
+          : { ok: false, text: `Tiket tersimpan, email tidak terkirim: ${info.reason}` },
+      )
+    } catch {
+      setNotice({
+        ok: false,
+        text: 'Tiket tersimpan, tetapi email gagal dikirim. Coba kirim ulang.',
+      })
+    } finally {
+      setSavingId('')
+    }
+  }
+
   async function setStatus(id, status) {
+    if (status === 'dikonfirmasi') {
+      await deliverTicket(id, { approve: true })
+      return
+    }
+
     const reservation = rows.find((r) => r.id === id)
     setSavingId(id)
     setError('')
     setNotice(null)
     try {
-      if (status === 'ditolak') {
-        // tolak = kembalikan kuota; status + counter ditulis atomik.
-        await runTransaction(db, async (tx) => {
-          const rRef = doc(db, 'reservations', id)
-          const rSnap = await tx.get(rRef)
-          if (!rSnap.exists()) throw new Error('Reservasi tidak ditemukan.')
-          const data = rSnap.data()
-          const qRef = doc(db, 'quotas', data.tanggal)
-          const qSnap = await tx.get(qRef)
-          const limit = qSnap.exists() ? Number(qSnap.data().limit) || 100 : 100
-          const used = qSnap.exists() ? Number(qSnap.data().used ?? 0) : 0
-          tx.update(rRef, { status })
-          if (data.status !== 'ditolak') {
-            tx.set(
-              qRef,
-              {
-                tanggal: data.tanggal,
-                limit,
-                used: Math.max(0, used - (Number(data.pax) || 0)),
-              },
-              { merge: true },
-            )
-          }
-        })
-      } else {
-        await updateDoc(doc(db, 'reservations', id), { status })
-      }
+      // tolak = kembalikan kuota; status + counter ditulis atomik.
+      await runTransaction(db, async (tx) => {
+        const rRef = doc(db, 'reservations', id)
+        const rSnap = await tx.get(rRef)
+        if (!rSnap.exists()) throw new Error('Reservasi tidak ditemukan.')
+        const data = rSnap.data()
+        const qRef = doc(db, 'quotas', data.tanggal)
+        const qSnap = await tx.get(qRef)
+        const limit = qSnap.exists() ? Number(qSnap.data().limit) || 100 : 100
+        const used = qSnap.exists() ? Number(qSnap.data().used ?? 0) : 0
+        tx.update(rRef, { status })
+        if (data.status !== 'ditolak') {
+          tx.set(
+            qRef,
+            {
+              tanggal: data.tanggal,
+              limit,
+              used: Math.max(0, used - (Number(data.pax) || 0)),
+            },
+            { merge: true },
+          )
+        }
+      })
       setRows((current) => current.map((r) => (r.id === id ? { ...r, status } : r)))
       const q = await getDoc(doc(db, 'quotas', quotaTanggal)).catch(() => null)
       if (q) setQuotaUsed(q.exists() ? Number(q.data().used ?? 0) : 0)
@@ -368,7 +465,19 @@ function Dashboard({ user }) {
           </h1>
           <p className="mt-1 text-sm text-ink-700">Masuk sebagai {user.email}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/admin/scan-masuk"
+            className="rounded-full border border-forest-100 px-5 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100"
+          >
+            Scan Masuk
+          </a>
+          <a
+            href="/admin/scan-keluar"
+            className="rounded-full border border-forest-100 px-5 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100"
+          >
+            Scan Keluar
+          </a>
           <a
             href="/"
             className="rounded-full border border-forest-100 px-5 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100"
@@ -595,6 +704,15 @@ function Dashboard({ user }) {
                           Reject
                         </button>
                       </div>
+                    ) : r.status === 'dikonfirmasi' ? (
+                      <button
+                        type="button"
+                        disabled={savingId === r.id}
+                        onClick={() => deliverTicket(r.id)}
+                        className="rounded-full border border-forest-100 px-4 py-1.5 text-xs font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
+                      >
+                        {r.ticketCode ? 'Kirim tiket' : 'Terbitkan tiket'}
+                      </button>
                     ) : (
                       <span className="text-ink-700">—</span>
                     )}
@@ -619,6 +737,9 @@ function Dashboard({ user }) {
 
 export default function Admin() {
   const [user, setUser] = useState(undefined)
+  const path = window.location.pathname.replace(/\/+$/, '')
+  const scanMode =
+    path === '/admin/scan-keluar' ? 'keluar' : path === '/admin/scan-masuk' ? 'masuk' : null
 
   useEffect(() => onAuthStateChanged(auth, setUser), [])
 
@@ -628,7 +749,15 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-sand-50">
-      {user ? <Dashboard user={user} /> : <Login />}
+      {user ? (
+        scanMode ? (
+          <GateScanner user={user} mode={scanMode} />
+        ) : (
+          <Dashboard user={user} />
+        )
+      ) : (
+        <Login />
+      )}
     </div>
   )
 }

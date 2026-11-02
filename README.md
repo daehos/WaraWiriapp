@@ -70,13 +70,79 @@ Aturan tambahan: tanggal kunjungan **minimal besok** (tidak boleh hari ini), kon
 2. Buat **Template** dengan variabel berikut:
    - **To Email**: `{{to_email}}`
    - **Subject**: `Update Reservasi Kunjungan: {{title}} - {{status}}`
-   - **Body**: gunakan variabel `name`, `title`, `status`, `is_approved`, `is_declined`, `tanggal_kunjungan`, `waktu_kunjungan`, `lokasi_gedung_ruangan`, `jumlah_orang`, `alasan_penolakan`.
+   - **Body**: gunakan variabel `name`, `title`, `status`, `is_approved`, `is_declined`, `tanggal_kunjungan`, `waktu_kunjungan`, `lokasi_gedung_ruangan`, `jumlah_orang`, `alasan_penolakan`, `ticket_url`, `ticket_code`.
 3. Service ID, Template ID, dan Public Key sudah tertanam di `Frontend/src/lib/email.js` (nilai publik, memang dipakai dari browser).
 4. Wajib: batasi **Allowed Origins** di dashboard EmailJS ke `localhost:5173` dan `warawiriapp-da23e.web.app`.
 
 Email dikirim ke kolom **Email**; kalau kosong, dicoba ke kontak bila formatnya email. Status tetap tersimpan walau email gagal (dashboard menampilkan alasannya). Backend SMTP (`POST /api/notify`) masih tersedia bila backend di-deploy, tetapi frontend memakai EmailJS.
 
-### Sprint 4 dan seterusnya
+### Sprint 4 — E-Ticketing QR
+
+| # | Acceptance Criteria | Status |
+|---|---|---|
+| 1 | QR tiket terbit saat admin approve | ✅ Selesai |
+| 2 | Email berisi link halaman tiket + kode manual | ✅ Selesai (tanpa lampiran) |
+| 3 | QR hanya valid pada tanggal kunjungan (WIB) | ✅ Selesai |
+| 4 | Scan masuk/keluar lewat kamera | ✅ Halaman `/admin/scan-masuk` dan `/admin/scan-keluar` |
+| 5 | Batas orang di dalam = pax, boleh keluar-masuk | ✅ Selesai |
+
+**Cara kerja tiket:**
+
+- Saat approve, reservasi mendapat `ticketCode` acak 32 karakter hex untuk QR dan `manualCode` 6 digit untuk fallback. QR berisi `WWR-TKT|nomor-reservasi|kode`; kode manual dipetakan di `manualCodes/{6 digit}` ke reservasi.
+- Email berisi tombol **Buka Tiket QR** ke halaman publik `/tiket?data=…&manual=…` dan **kode manual 6 digit**. Halaman tiket membuat QR di browser, jadi tidak perlu lampiran EmailJS berbayar. Scanner menerima isi QR atau kode manual 6 digit.
+- Kode manual 6 digit lebih mudah ditebak daripada QR; gunakan hanya sebagai fallback dan petugas tetap mencocokkan nama/tanggal di layar scanner.
+- QR berlaku **00:00–23:59 WIB** pada `tanggal` reservasi.
+- Scan masuk menaikkan `inside` dan `entries`; scan keluar menurunkan `inside` dan menaikkan `exits`. Scan masuk hanya boleh jika `inside < pax`, jadi rombongan bisa keluar-masuk tanpa melebihi jumlah orang.
+- Scanner memakai kamera belakang; jika kamera ditolak/tidak tersedia, ada input manual untuk menempel isi QR. Halaman scanner butuh login admin.
+- Counter dan kode tiket hanya bisa ditulis admin (Firebase Auth claim `admin`), divalidasi `firestore.rules`.
+
+**Template email tiket (pakai template EmailJS yang sudah ada):**
+
+Tidak perlu template baru dan tidak perlu attachment. Ganti body template dengan contoh berikut (pertahankan **To Email** dan **Subject**). Kalau ingin mempertahankan body lama, sisipkan bagian link + kode manual di **dalam** blok `{{#is_approved}} ... {{/is_approved}}` (jangan di bagian penolakan).
+
+```html
+<div style="font-family: system-ui, Arial, sans-serif; font-size: 16px; line-height: 1.5;">
+  <p>Hi {{name}},</p>
+
+  {{#is_approved}}
+  <p>Reservasi kunjungan Anda telah <strong>disetujui</strong>.</p>
+  <p><strong>{{title}}</strong><br>
+  Tanggal: {{tanggal_kunjungan}}<br>
+  Jumlah: {{jumlah_orang}}<br>
+  Lokasi: {{lokasi_gedung_ruangan}}</p>
+
+  <p><strong>Tiket QR Anda sudah siap.</strong></p>
+  <p>
+    <a href="{{ticket_url}}" style="display:inline-block;background:#1f513f;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:999px;font-weight:600;">
+      Buka Tiket QR
+    </a>
+  </p>
+  <p>Atau buka link ini di browser:<br>
+  <a href="{{ticket_url}}">{{ticket_url}}</a></p>
+
+  <p><strong>Jika tidak ada internet di pintu masuk/keluar</strong>, tunjukkan kode manual 6 digit ini ke petugas:</p>
+  <div style="font-family:monospace;font-size:12px;background:#f4f1ea;padding:12px;border-radius:8px;word-break:break-all;">
+    {{ticket_code}}
+  </div>
+
+  <p>Simpan atau screenshot QR sebelum berangkat. QR berlaku pada tanggal kunjungan dan bisa dipakai keluar-masuk selama jumlah orang di dalam tidak melebihi kuota rombongan.</p>
+  {{/is_approved}}
+
+  {{#is_declined}}
+  <p>Mohon maaf, reservasi kunjungan Anda <strong>belum dapat disetujui</strong>.</p>
+  <p><strong>{{title}}</strong><br>
+  Tanggal: {{tanggal_kunjungan}}<br>
+  Jumlah: {{jumlah_orang}}</p>
+  <p>Alasan: {{alasan_penolakan}}.</p>
+  {{/is_declined}}
+
+  <p>Sampai jumpa!<br>WaraWiri Village</p>
+</div>
+```
+
+**Halaman tiket publik:** `/tiket?data=WWR-TKT|nomor-reservasi|kode` — QR dibuat di browser dan bisa diunduh. Halaman ini tidak membaca Firestore, jadi tidak membocorkan data reservasi; validasi tetap dilakukan scanner.
+
+### Sprint berikutnya
 
 Belum diumumkan.
 
@@ -235,7 +301,7 @@ Catatan:
 
 - Kuota gratis Spark: 10 GB storage, 360 MB/hari transfer — lebih dari cukup.
 - **Kuota per tanggal** sepenuhnya serverless: admin set `limit`, pengunjung menaikkan `used` lewat transaksi, ditolak = counter turun. Tetap jalan tanpa backend.
-- **Email notifikasi** memakai EmailJS dari browser admin (config publik tertanam di `Frontend/src/lib/email.js`), jadi tetap aktif di hosting statis tanpa backend.
+- **Email notifikasi** memakai EmailJS dari browser admin (config publik tertanam di `Frontend/src/lib/email.js`), jadi tetap aktif di hosting statis tanpa backend. Masuk folder inbox **tidak bisa dijamin 100%** — gunakan alamat pengirim dengan SPF/DKIM/DMARC yang benar, batasi Allowed Origins, dan minta penerima menandai "bukan spam" bila perlu.
 - Counter kuota divalidasi rules, tapi client yang sengaja memakai batch (bukan transaksi) masih bisa memicu lost-update — untuk desa wisata risikonya kecil.
 - Kalau workflow gagal `403 (hosting)` → service account butuh role **Firebase Hosting Admin** di Google Cloud Console → IAM.
 - Kalau gagal `site not found` → buka Firebase Console → **Hosting → Get started** sekali untuk membuat site.
