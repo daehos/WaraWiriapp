@@ -83,7 +83,7 @@ Email dikirim ke kolom **Email**; kalau kosong, dicoba ke kontak bila formatnya 
 | 1 | QR tiket terbit saat admin approve | ✅ Selesai |
 | 2 | Email berisi link halaman tiket + kode manual | ✅ Selesai (tanpa lampiran) |
 | 3 | QR hanya valid pada tanggal kunjungan (WIB) | ✅ Selesai |
-| 4 | Scan masuk/keluar lewat kamera | ✅ Halaman `/admin/scan-masuk` dan `/admin/scan-keluar` |
+| 4 | Scan masuk/keluar lewat kamera | ✅ Satu dashboard `/admin/scan` dengan dua panel kamera |
 | 5 | Batas orang di dalam = pax, boleh keluar-masuk | ✅ Selesai |
 
 **Cara kerja tiket:**
@@ -93,8 +93,29 @@ Email dikirim ke kolom **Email**; kalau kosong, dicoba ke kontak bila formatnya 
 - Kode manual 6 digit lebih mudah ditebak daripada QR; gunakan hanya sebagai fallback dan petugas tetap mencocokkan nama/tanggal di layar scanner.
 - QR berlaku **00:00–23:59 WIB** pada `tanggal` reservasi.
 - Scan masuk menaikkan `inside` dan `entries`; scan keluar menurunkan `inside` dan menaikkan `exits`. Scan masuk hanya boleh jika `inside < pax`, jadi rombongan bisa keluar-masuk tanpa melebihi jumlah orang.
-- Scanner memakai kamera belakang; jika kamera ditolak/tidak tersedia, ada input manual untuk menempel isi QR. Halaman scanner butuh login admin.
+- Scanner ada di `/admin/scan` dan butuh login admin. Satu dashboard menampilkan dua panel: **kiri = pintu masuk**, **kanan = pintu keluar**. Dua kamera bisa berjalan bersamaan; scan di satu panel hanya menghentikan kamera panel itu, panel lain tetap live.
+- Chrome/Edge di desktop bisa membuka dua webcam USB sekaligus. Pilih perangkat untuk tiap panel lewat dropdown **Pilih kamera**; pilihan disimpan di `localStorage` dan dipakai lagi saat halaman dibuka. Kamera yang sama tidak boleh dipakai kedua panel.
+- Jika kamera ditolak/tidak tersedia, setiap panel tetap punya input manual untuk menempel isi QR atau mengetik kode manual 6 digit.
+- Alamat lama `/admin/scan-masuk` dan `/admin/scan-keluar` tetap diarahkan ke dashboard dua panel ini.
 - Counter dan kode tiket hanya bisa ditulis admin (Firebase Auth claim `admin`), divalidasi `firestore.rules`.
+
+**Setup dua kamera (laptop admin):**
+
+1. Sambungkan dua webcam, lalu buka `/admin/scan` dan login.
+2. Klik **Deteksi kamera**, izinkan akses kamera di browser. Di macOS, label perangkat biasanya muncul sebagai nama webcam + ID.
+3. Panel kiri: pilih kamera pintu masuk. Panel kanan: pilih kamera pintu keluar. Klik **Aktifkan kamera** di masing-masing panel.
+4. Kalau dua webcam memakai model yang sama sehingga labelnya mirip, aktifkan satu panel dulu untuk memastikan gambar yang benar, lalu tukar lewat dropdown setelah kamera dimatikan.
+5. Akses kamera hanya berjalan di `https://` atau `http://localhost`; jangan buka lewat IP LAN biasa.
+
+**Tes dengan satu kamera (mis. di laptop pengembangan):**
+
+- Cara cepat: aktifkan kamera fisik hanya di panel masuk, lalu uji panel keluar lewat **input manual 6 digit**. Setelah itu tukar: matikan panel masuk, pindahkan kamera ke panel keluar, dan uji arah sebaliknya. Ini menguji transaksi masuk/keluar tanpa dua stream.
+- Untuk menguji dua stream sekaligus tanpa webcam kedua, pakai **OBS Virtual Camera** (gratis):
+  1. Buka OBS, tambahkan **Image Source** berisi screenshot QR tiket (atau **Media Source** berisi video QR).
+  2. Klik **Start Virtual Camera** di OBS.
+  3. Klik **Deteksi ulang kamera** di dashboard; pilih webcam fisik untuk panel masuk dan **OBS Virtual Camera** untuk panel keluar.
+  4. Aktifkan kedua panel. QR dari gambar OBS akan terbaca oleh panel keluar; kamera fisik bisa diarahkan ke QR lain untuk panel masuk.
+- iPhone dengan **Continuity Camera** (macOS) juga bisa menjadi kamera kedua jika tersedia.
 
 **Template email tiket (pakai template EmailJS yang sudah ada):**
 

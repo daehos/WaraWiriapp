@@ -467,16 +467,10 @@ function Dashboard({ user }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <a
-            href="/admin/scan-masuk"
+            href="/admin/scan"
             className="rounded-full border border-forest-100 px-5 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100"
           >
-            Scan Masuk
-          </a>
-          <a
-            href="/admin/scan-keluar"
-            className="rounded-full border border-forest-100 px-5 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100"
-          >
-            Scan Keluar
+            Scan Masuk / Keluar
           </a>
           <a
             href="/"
@@ -738,8 +732,7 @@ function Dashboard({ user }) {
 export default function Admin() {
   const [user, setUser] = useState(undefined)
   const path = window.location.pathname.replace(/\/+$/, '')
-  const scanMode =
-    path === '/admin/scan-keluar' ? 'keluar' : path === '/admin/scan-masuk' ? 'masuk' : null
+  const isScan = path.startsWith('/admin/scan')
 
   useEffect(() => onAuthStateChanged(auth, setUser), [])
 
@@ -750,8 +743,8 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-sand-50">
       {user ? (
-        scanMode ? (
-          <GateScanner user={user} mode={scanMode} />
+        isScan ? (
+          <GateScanner user={user} />
         ) : (
           <Dashboard user={user} />
         )

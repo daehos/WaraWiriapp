@@ -34,3 +34,10 @@ h2,
 h3 {
   font-family: var(--font-display);
 }
+
+/* Preview dua kamera dibuat sama tinggi; html5-qrcode menulis width inline. */
+.qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}

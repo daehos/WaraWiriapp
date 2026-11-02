@@ -19,11 +19,253 @@ import {
   todayWIB,
 } from '../lib/ticket'
 
-const READER_ID = 'gate-qr-reader'
-const TITLE = { masuk: 'Scan Masuk', keluar: 'Scan Keluar' }
+const CAMERA_KEY = 'warawiri.scan.cameras'
 
-export default function GateScanner({ user, mode }) {
+const PANELS = {
+  masuk: {
+    title: 'Pintu Masuk',
+    position: 'Kamera kiri',
+    readerId: 'qr-reader-masuk',
+    border: 'border-forest-100',
+    titleColor: 'text-forest-700',
+    button: 'bg-forest-700 hover:bg-forest-900',
+    badge: 'bg-forest-50 text-forest-700',
+    dot: 'bg-forest-600',
+  },
+  keluar: {
+    title: 'Pintu Keluar',
+    position: 'Kamera kanan',
+    readerId: 'qr-reader-keluar',
+    border: 'border-clay-500/50',
+    titleColor: 'text-clay-600',
+    button: 'bg-clay-600 hover:bg-clay-500',
+    badge: 'bg-clay-100 text-clay-600',
+    dot: 'bg-clay-500',
+  },
+}
+
+function readSavedDevices() {
+  try {
+    const value = JSON.parse(localStorage.getItem(CAMERA_KEY) ?? '{}')
+    return {
+      masuk: typeof value.masuk === 'string' ? value.masuk : '',
+      keluar: typeof value.keluar === 'string' ? value.keluar : '',
+    }
+  } catch {
+    return { masuk: '', keluar: '' }
+  }
+}
+
+function saveDevices(devices) {
+  try {
+    localStorage.setItem(CAMERA_KEY, JSON.stringify(devices))
+  } catch {
+    // localStorage bisa diblokir; pilihan kamera tetap berlaku selama halaman terbuka.
+  }
+}
+
+function cameraLabel(camera, index) {
+  return camera.label?.trim() || `Kamera ${index + 1}`
+}
+
+async function stopScannerInstance(scanner) {
+  if (!scanner) return
+  try {
+    await scanner.stop()
+  } catch {
+    // kamera memang belum/tidak berjalan
+  }
+  try {
+    scanner.clear()
+  } catch {
+    // abaikan
+  }
+}
+
+function cameraErrorMessage(err) {
+  if (err?.name === 'NotAllowedError') {
+    return 'Izin kamera ditolak. Izinkan kamera di browser, atau pakai input manual di bawah.'
+  }
+  if (err?.name === 'NotReadableError' || err?.name === 'TrackStartError') {
+    return 'Kamera sedang dipakai aplikasi atau panel lain. Pilih kamera berbeda, tutup aplikasi lain, lalu coba lagi.'
+  }
+  if (err?.name === 'OverconstrainedError' || err?.name === 'NotFoundError') {
+    return 'Kamera yang dipilih tidak ditemukan. Pilih kamera lain atau pakai input manual di bawah.'
+  }
+  return 'Kamera tidak bisa diakses. Pilih kamera lain atau pakai input manual di bawah.'
+}
+
+// html5-qrcode memakai id global "qr-shaded-region" saat qrbox aktif. Dengan dua
+// instance, stop() panel kanan bisa mencoba menghapus shade panel kiri. Karena itu
+// scanner memakai area penuh dan overlay bingkai dibuat sendiri di bawah.
+
+export default function GateScanner({ user }) {
+  const [cameras, setCameras] = useState([])
+  const [devices, setDevices] = useState({ masuk: '', keluar: '' })
+  const [loadingCameras, setLoadingCameras] = useState(false)
+  const [cameraListError, setCameraListError] = useState('')
+  const [livePanels, setLivePanels] = useState({ masuk: false, keluar: false })
+  const activeRef = useRef(true)
+
+  const anyLive = livePanels.masuk || livePanels.keluar
+
+  function setPanelLive(mode, live) {
+    setLivePanels((current) => (current[mode] === live ? current : { ...current, [mode]: live }))
+  }
+
+  useEffect(() => {
+    activeRef.current = true
+    return () => {
+      activeRef.current = false
+    }
+  }, [])
+
+  async function detectCameras() {
+    setLoadingCameras(true)
+    setCameraListError('')
+    try {
+      const list = await Html5Qrcode.getCameras()
+      if (!activeRef.current) return
+
+      setCameras(list)
+      const saved = readSavedDevices()
+      const exists = (id) => list.some((camera) => camera.id === id)
+      const masuk = exists(saved.masuk) ? saved.masuk : list[0]?.id ?? ''
+      const keluar =
+        exists(saved.keluar) && saved.keluar !== masuk
+          ? saved.keluar
+          : list.find((camera) => camera.id !== masuk)?.id ?? ''
+      const next = { masuk, keluar }
+      setDevices(next)
+      saveDevices(next)
+    } catch {
+      if (activeRef.current) {
+        setCameraListError(
+          'Kamera belum bisa dideteksi. Izinkan akses kamera di browser, lalu klik Deteksi kamera lagi. Input manual tetap bisa dipakai.',
+        )
+      }
+    } finally {
+      if (activeRef.current) setLoadingCameras(false)
+    }
+  }
+
+  function changeDevice(mode, id) {
+    setDevices((current) => {
+      const next = { ...current, [mode]: id }
+      saveDevices(next)
+      return next
+    })
+  }
+
+  const duplicate = Boolean(devices.masuk && devices.masuk === devices.keluar)
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <a href="/admin" className="text-sm font-semibold text-forest-700 hover:text-forest-900">
+            ← Dashboard
+          </a>
+          <h1 className="mt-3 font-display text-3xl font-medium text-ink-900">
+            Scan Masuk &amp; Keluar
+          </h1>
+          <p className="mt-1 text-sm text-ink-700">
+            {user.email} · Berlaku untuk kunjungan {todayWIB()} (WIB)
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={detectCameras}
+            disabled={loadingCameras || anyLive}
+            title={anyLive ? 'Matikan kamera terlebih dahulu untuk mendeteksi ulang.' : undefined}
+            className="rounded-full border border-forest-100 px-4 py-2 text-sm font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
+          >
+            {loadingCameras
+              ? 'Mendeteksi kamera…'
+              : cameras.length > 0
+                ? 'Deteksi ulang kamera'
+                : 'Deteksi kamera'}
+          </button>
+          <button
+            type="button"
+            onClick={() => signOut(auth)}
+            className="rounded-full bg-forest-700 px-4 py-2 text-sm font-semibold text-sand-50 transition hover:bg-forest-900"
+          >
+            Keluar
+          </button>
+        </div>
+      </header>
+
+      <div className="mb-4 rounded-2xl border border-forest-100 bg-white px-4 py-3 text-sm text-ink-700">
+        <p className="font-semibold text-forest-700">
+          Kamera kiri = pintu masuk · kamera kanan = pintu keluar
+        </p>
+        <p className="mt-1 text-xs">
+          {loadingCameras
+            ? 'Mendeteksi kamera…'
+            : cameras.length === 0
+              ? 'Kamera belum dideteksi. Klik Deteksi kamera untuk memberi izin, atau langsung pakai input manual.'
+              : `${cameras.length} kamera terdeteksi. Pilih kamera untuk tiap panel, lalu aktifkan.`}
+        </p>
+      </div>
+
+      {cameraListError && (
+        <p
+          role="alert"
+          className="mb-4 rounded-xl border border-clay-500 bg-clay-100/60 px-4 py-3 text-sm font-medium text-clay-600"
+        >
+          {cameraListError}
+        </p>
+      )}
+
+      {!loadingCameras && !cameraListError && cameras.length === 1 && (
+        <p className="mb-4 rounded-xl border border-sand-100 bg-sand-100/60 px-4 py-3 text-sm text-ink-700">
+          Baru satu kamera terdeteksi. Untuk tes dua tampilan, pakai kamera fisik di satu panel dan
+          input manual di panel lain, atau tambahkan OBS Virtual Camera sebagai kamera kedua.
+        </p>
+      )}
+
+      {duplicate && (
+        <p
+          role="alert"
+          className="mb-4 rounded-xl border border-clay-500 bg-clay-100/60 px-4 py-3 text-sm font-medium text-clay-600"
+        >
+          Kamera masuk dan kamera keluar tidak boleh memakai perangkat yang sama. Pilih kamera
+          berbeda untuk salah satu panel.
+        </p>
+      )}
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        {Object.keys(PANELS).map((mode) => (
+          <CameraPanel
+            key={mode}
+            mode={mode}
+            cameras={cameras}
+            cameraId={devices[mode]}
+            duplicate={duplicate}
+            loadingCameras={loadingCameras}
+            onDeviceChange={(id) => changeDevice(mode, id)}
+            onLiveChange={(live) => setPanelLive(mode, live)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CameraPanel({
+  mode,
+  cameras,
+  cameraId,
+  duplicate,
+  loadingCameras,
+  onDeviceChange,
+  onLiveChange,
+}) {
+  const panel = PANELS[mode]
   const [cameraOn, setCameraOn] = useState(false)
+  const [starting, setStarting] = useState(false)
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
@@ -36,53 +278,60 @@ export default function GateScanner({ user, mode }) {
     mountedRef.current = true
     return () => {
       mountedRef.current = false
-      stopCamera(false)
+      const scanner = scannerRef.current
+      scannerRef.current = null
+      stopScannerInstance(scanner)
     }
   }, [])
 
   async function stopCamera(updateState = true) {
     const scanner = scannerRef.current
     scannerRef.current = null
-    if (scanner) {
-      try {
-        await scanner.stop()
-      } catch {
-        // kamera memang belum/tidak berjalan
-      }
-      try {
-        scanner.clear()
-      } catch {
-        // abaikan
-      }
+    await stopScannerInstance(scanner)
+    if (updateState && mountedRef.current) {
+      setCameraOn(false)
+      onLiveChange(false)
     }
-    if (updateState && mountedRef.current) setCameraOn(false)
   }
 
   async function startCamera() {
     setError('')
     setResult(null)
-    if (scannerRef.current) return
+    if (scannerRef.current || starting) return
+    if (!cameraId) {
+      setError('Pilih kamera untuk panel ini terlebih dahulu.')
+      return
+    }
+    if (duplicate) {
+      setError('Kamera masuk dan keluar tidak boleh memakai perangkat yang sama.')
+      return
+    }
 
-    const scanner = new Html5Qrcode(READER_ID, { verbose: false })
-    scannerRef.current = scanner
+    setStarting(true)
+    let scanner
     try {
+      scanner = new Html5Qrcode(panel.readerId, { verbose: false })
+      scannerRef.current = scanner
       await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
+        { deviceId: { exact: cameraId } },
+        { fps: 10 },
         (decoded) => handleScan(decoded),
         () => {},
       )
-      if (mountedRef.current) setCameraOn(true)
-    } catch {
+      if (mountedRef.current) {
+        setCameraOn(true)
+        onLiveChange(true)
+      }
+    } catch (err) {
       scannerRef.current = null
       try {
-        scanner.clear()
+        scanner?.clear()
       } catch {
         // abaikan
       }
-      if (mountedRef.current) {
-        setError('Kamera tidak bisa diakses. Izinkan kamera atau pakai input manual di bawah.')
-      }
+      if (mountedRef.current) setError(cameraErrorMessage(err))
+    } finally {
+      if (mountedRef.current) setStarting(false)
     }
   }
 
@@ -90,10 +339,11 @@ export default function GateScanner({ user, mode }) {
     if (busyRef.current) return
     busyRef.current = true
     setBusy(true)
+    setResult(null)
     await stopCamera()
     await processTicket(raw)
     busyRef.current = false
-    setBusy(false)
+    if (mountedRef.current) setBusy(false)
   }
 
   async function resolveTicket(raw) {
@@ -163,85 +413,110 @@ export default function GateScanner({ user, mode }) {
   function submitManual(event) {
     event.preventDefault()
     const value = manual.trim()
-    if (!value) return
+    if (!value || busyRef.current) return
     setManual('')
     handleScan(value)
   }
 
-  const modeLabel = TITLE[mode]
+  const canStart =
+    cameras.some((camera) => camera.id === cameraId) && !duplicate && !busy && !starting
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-8">
-      <header className="mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <a href="/admin" className="text-sm font-semibold text-forest-700 hover:text-forest-900">
-            ← Dashboard
-          </a>
-          <div className="flex items-center gap-3 text-sm">
-            <a
-              href={mode === 'masuk' ? '/admin/scan-keluar' : '/admin/scan-masuk'}
-              className="font-semibold text-forest-700 hover:text-forest-900"
-            >
-              {mode === 'masuk' ? 'Scan Keluar' : 'Scan Masuk'}
-            </a>
-            <button
-              type="button"
-              onClick={() => signOut(auth)}
-              className="font-semibold text-ink-700 hover:text-ink-900"
-            >
-              Keluar
-            </button>
-          </div>
-        </div>
-        <h1 className="mt-4 font-display text-3xl font-medium text-ink-900">{modeLabel}</h1>
-        <p className="mt-1 text-sm text-ink-700">
-          {user.email} · Berlaku untuk kunjungan {todayWIB()} (WIB)
-        </p>
-      </header>
-
-      <section className="rounded-3xl border border-forest-100 bg-white p-4">
-        <div
-          id={READER_ID}
-          className="mx-auto min-h-56 w-full max-w-sm overflow-hidden rounded-2xl bg-ink-900/5"
-        />
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {!cameraOn && !busy && (
-            <button
-              type="button"
-              onClick={startCamera}
-              className="rounded-full bg-forest-700 px-5 py-2.5 text-sm font-semibold text-sand-50 transition hover:bg-forest-900"
-            >
-              Aktifkan kamera
-            </button>
-          )}
-          {cameraOn && (
-            <button
-              type="button"
-              onClick={() => stopCamera()}
-              className="rounded-full border border-forest-100 px-5 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100"
-            >
-              Matikan kamera
-            </button>
-          )}
-          {busy && <p className="self-center text-sm font-semibold text-forest-700">Memproses…</p>}
-        </div>
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-3 rounded-xl border border-clay-500 bg-clay-100/60 px-4 py-3 text-sm font-medium text-clay-600"
-          >
-            {error}
+    <section className={`flex flex-col rounded-3xl border bg-white p-4 ${panel.border}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-700">
+            {panel.position}
           </p>
+          <h2 className={`font-display text-2xl font-medium ${panel.titleColor}`}>
+            {panel.title}
+          </h2>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+            cameraOn ? panel.badge : 'bg-sand-100 text-ink-700'
+          }`}
+        >
+          <span className={`h-2 w-2 rounded-full ${cameraOn ? panel.dot : 'bg-ink-700/30'}`} />
+          {cameraOn ? 'Live' : 'Kamera mati'}
+        </span>
+      </div>
+
+      <label htmlFor={`camera-${mode}`} className="mt-4 text-sm font-semibold text-forest-700">
+        Pilih kamera
+      </label>
+      <select
+        id={`camera-${mode}`}
+        value={cameraId}
+        onChange={(event) => onDeviceChange(event.target.value)}
+        disabled={cameraOn || starting || busy}
+        className="mt-1 w-full rounded-xl border border-forest-100 bg-white px-3 py-2.5 text-sm outline-none focus:border-forest-600 disabled:bg-sand-50 disabled:text-ink-700"
+      >
+        <option value="">Pilih kamera…</option>
+        {cameras.map((camera, index) => (
+          <option key={camera.id} value={camera.id}>
+            {cameraLabel(camera, index)}
+          </option>
+        ))}
+      </select>
+      {cameras.length === 0 && !loadingCameras && (
+        <p className="mt-1 text-xs text-ink-700">
+          Belum ada kamera. Klik Deteksi kamera di atas atau langsung gunakan input manual.
+        </p>
+      )}
+
+      <div className="relative mt-3 overflow-hidden rounded-2xl bg-ink-900/5">
+        <div id={panel.readerId} className="qr-reader aspect-[4/3] w-full" />
+        {cameraOn && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="h-[220px] w-[220px] rounded-2xl border-2 border-sand-50/90 shadow-[0_0_0_9999px_rgba(28,51,39,0.32)]" />
+          </div>
         )}
-      </section>
+        {!cameraOn && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-sand-50/70 px-4 text-center text-sm font-semibold text-ink-700">
+            {starting ? 'Menyalakan kamera…' : 'Kamera belum aktif'}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {!cameraOn && (
+          <button
+            type="button"
+            onClick={startCamera}
+            disabled={!canStart}
+            className={`rounded-full px-5 py-2.5 text-sm font-semibold text-sand-50 transition disabled:cursor-not-allowed disabled:opacity-60 ${panel.button}`}
+          >
+            {starting ? 'Menyalakan…' : 'Aktifkan kamera'}
+          </button>
+        )}
+        {cameraOn && (
+          <button
+            type="button"
+            onClick={() => stopCamera()}
+            disabled={busy}
+            className="rounded-full border border-forest-100 px-5 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
+          >
+            Matikan kamera
+          </button>
+        )}
+        {busy && <p className="text-sm font-semibold text-forest-700">Memproses…</p>}
+      </div>
+
+      {error && (
+        <p
+          role="alert"
+          className="mt-3 rounded-xl border border-clay-500 bg-clay-100/60 px-4 py-3 text-sm font-medium text-clay-600"
+        >
+          {error}
+        </p>
+      )}
 
       {result && (
         <div
           role="status"
           aria-live="polite"
-          className={`mt-4 rounded-2xl border px-5 py-4 ${
+          className={`mt-4 rounded-2xl border px-4 py-3 ${
             result.ok
               ? 'border-forest-100 bg-forest-50 text-forest-700'
               : 'border-clay-500 bg-clay-100/60 text-clay-600'
@@ -268,15 +543,19 @@ export default function GateScanner({ user, mode }) {
           <button
             type="button"
             onClick={startCamera}
-            className="mt-3 rounded-full bg-forest-700 px-4 py-2 text-xs font-semibold text-sand-50 transition hover:bg-forest-900"
+            disabled={!canStart}
+            className="mt-3 rounded-full bg-forest-700 px-4 py-2 text-xs font-semibold text-sand-50 transition hover:bg-forest-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Scan berikutnya
           </button>
         </div>
       )}
 
-      <form onSubmit={submitManual} className="mt-6 rounded-2xl border border-forest-100 bg-white p-4">
-        <label htmlFor="gate-manual" className="text-sm font-semibold text-forest-700">
+      <form
+        onSubmit={submitManual}
+        className="mt-4 rounded-2xl border border-forest-100 bg-sand-50/60 p-3"
+      >
+        <label htmlFor={`manual-${mode}`} className="text-sm font-semibold text-forest-700">
           Input manual (cadangan)
         </label>
         <p className="mt-1 text-xs text-ink-700">
@@ -285,21 +564,22 @@ export default function GateScanner({ user, mode }) {
         </p>
         <div className="mt-2 flex gap-2">
           <input
-            id="gate-manual"
+            id={`manual-${mode}`}
             value={manual}
             onChange={(event) => setManual(event.target.value)}
+            disabled={busy || starting}
             placeholder="WWR-TKT|… atau 6 digit"
-            className="min-w-0 flex-1 rounded-xl border border-forest-100 bg-white px-3 py-2.5 text-sm outline-none focus:border-forest-600"
+            className="min-w-0 flex-1 rounded-xl border border-forest-100 bg-white px-3 py-2.5 text-sm outline-none focus:border-forest-600 disabled:bg-sand-50"
           />
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || starting}
             className="rounded-full border border-forest-100 px-4 py-2.5 text-sm font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
           >
             Proses
           </button>
         </div>
       </form>
-    </div>
+    </section>
   )
 }
