@@ -103,25 +103,26 @@ function cameraErrorMessage(err) {
 export default function GateScanner({ user }) {
   const [cameras, setCameras] = useState([])
   const [devices, setDevices] = useState({ masuk: '', keluar: '' })
-  const [loadingCameras, setLoadingCameras] = useState(false)
+  const [loadingCameras, setLoadingCameras] = useState(true)
   const [cameraListError, setCameraListError] = useState('')
-  const [livePanels, setLivePanels] = useState({ masuk: false, keluar: false })
   const activeRef = useRef(true)
-
-  const anyLive = livePanels.masuk || livePanels.keluar
-
-  function setPanelLive(mode, live) {
-    setLivePanels((current) => (current[mode] === live ? current : { ...current, [mode]: live }))
-  }
+  const detectingRef = useRef(false)
 
   useEffect(() => {
     activeRef.current = true
+    // Timer kecil membuat StrictMode tidak memicu dua permintaan kamera.
+    const timer = setTimeout(() => {
+      void detectCameras()
+    }, 0)
     return () => {
       activeRef.current = false
+      clearTimeout(timer)
     }
   }, [])
 
   async function detectCameras() {
+    if (detectingRef.current) return
+    detectingRef.current = true
     setLoadingCameras(true)
     setCameraListError('')
     try {
@@ -142,10 +143,11 @@ export default function GateScanner({ user }) {
     } catch {
       if (activeRef.current) {
         setCameraListError(
-          'Kamera belum bisa dideteksi. Izinkan akses kamera di browser, lalu klik Deteksi kamera lagi. Input manual tetap bisa dipakai.',
+          'Kamera belum bisa dideteksi. Izinkan akses kamera di browser, lalu coba deteksi ulang. Input manual tetap bisa dipakai.',
         )
       }
     } finally {
+      detectingRef.current = false
       if (activeRef.current) setLoadingCameras(false)
     }
   }
@@ -177,19 +179,6 @@ export default function GateScanner({ user }) {
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={detectCameras}
-            disabled={loadingCameras || anyLive}
-            title={anyLive ? 'Matikan kamera terlebih dahulu untuk mendeteksi ulang.' : undefined}
-            className="rounded-full border border-forest-100 px-4 py-2 text-sm font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
-          >
-            {loadingCameras
-              ? 'Mendeteksi kamera…'
-              : cameras.length > 0
-                ? 'Deteksi ulang kamera'
-                : 'Deteksi kamera'}
-          </button>
-          <button
-            type="button"
             onClick={() => signOut(auth)}
             className="rounded-full bg-forest-700 px-4 py-2 text-sm font-semibold text-sand-50 transition hover:bg-forest-900"
           >
@@ -204,26 +193,36 @@ export default function GateScanner({ user }) {
         </p>
         <p className="mt-1 text-xs">
           {loadingCameras
-            ? 'Mendeteksi kamera…'
+            ? 'Menyiapkan kamera… Izinkan akses kamera jika browser meminta.'
             : cameras.length === 0
-              ? 'Kamera belum dideteksi. Klik Deteksi kamera untuk memberi izin, atau langsung pakai input manual.'
-              : `${cameras.length} kamera terdeteksi. Pilih kamera untuk tiap panel, lalu aktifkan.`}
+              ? 'Tidak ada kamera terdeteksi. Gunakan input manual atau coba deteksi ulang.'
+              : `${cameras.length} kamera terdeteksi. Kamera langsung aktif; pilihan perangkat tersimpan otomatis.`}
         </p>
       </div>
 
-      {cameraListError && (
-        <p
+      {!loadingCameras && (cameraListError || cameras.length === 0) && (
+        <div
           role="alert"
-          className="mb-4 rounded-xl border border-clay-500 bg-clay-100/60 px-4 py-3 text-sm font-medium text-clay-600"
+          className="mb-4 rounded-xl border border-clay-500 bg-clay-100/60 px-4 py-3 text-sm text-clay-600"
         >
-          {cameraListError}
-        </p>
+          <p className="font-medium">
+            {cameraListError ||
+              'Tidak ada kamera yang terdeteksi. Sambungkan kamera, lalu coba deteksi ulang. Input manual tetap bisa dipakai.'}
+          </p>
+          <button
+            type="button"
+            onClick={detectCameras}
+            className="mt-3 rounded-full border border-clay-500 px-4 py-2 text-xs font-semibold transition hover:bg-clay-100"
+          >
+            Coba deteksi ulang
+          </button>
+        </div>
       )}
 
       {!loadingCameras && !cameraListError && cameras.length === 1 && (
         <p className="mb-4 rounded-xl border border-sand-100 bg-sand-100/60 px-4 py-3 text-sm text-ink-700">
-          Baru satu kamera terdeteksi. Untuk tes dua tampilan, pakai kamera fisik di satu panel dan
-          input manual di panel lain, atau tambahkan OBS Virtual Camera sebagai kamera kedua.
+          Baru satu kamera terdeteksi. Panel masuk aktif otomatis; panel keluar bisa memakai input
+          manual atau tambahkan kamera kedua.
         </p>
       )}
 
@@ -247,7 +246,6 @@ export default function GateScanner({ user }) {
             duplicate={duplicate}
             loadingCameras={loadingCameras}
             onDeviceChange={(id) => changeDevice(mode, id)}
-            onLiveChange={(live) => setPanelLive(mode, live)}
           />
         ))}
       </div>
@@ -262,7 +260,6 @@ function CameraPanel({
   duplicate,
   loadingCameras,
   onDeviceChange,
-  onLiveChange,
 }) {
   const panel = PANELS[mode]
   const [cameraOn, setCameraOn] = useState(false)
@@ -273,6 +270,9 @@ function CameraPanel({
   const [manual, setManual] = useState('')
   const scannerRef = useRef(null)
   const busyRef = useRef(false)
+  const startingRef = useRef(false)
+  const autoStartedForRef = useRef('')
+  const startCameraRef = useRef(null)
   const acceptedRawRef = useRef('')
   const lastSeenAtRef = useRef(0)
   const mountedRef = useRef(true)
@@ -287,20 +287,33 @@ function CameraPanel({
     }
   }, [])
 
+  useEffect(() => {
+    if (loadingCameras || !cameraId || duplicate) return
+    if (!cameras.some((camera) => camera.id === cameraId)) return
+    if (autoStartedForRef.current === cameraId) return
+
+    // Timer menghindari start ganda dari StrictMode tanpa menambah aksi pengguna.
+    const timer = setTimeout(() => {
+      if (!mountedRef.current || autoStartedForRef.current === cameraId) return
+      autoStartedForRef.current = cameraId
+      void startCameraRef.current?.()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [cameraId, cameras, duplicate, loadingCameras])
+
   async function stopCamera(updateState = true) {
     const scanner = scannerRef.current
     scannerRef.current = null
     await stopScannerInstance(scanner)
     if (updateState && mountedRef.current) {
       setCameraOn(false)
-      onLiveChange(false)
     }
   }
 
   async function startCamera() {
     setError('')
     setResult(null)
-    if (scannerRef.current || starting) return
+    if (scannerRef.current || startingRef.current) return
     acceptedRawRef.current = ''
     lastSeenAtRef.current = 0
     if (!cameraId) {
@@ -312,6 +325,7 @@ function CameraPanel({
       return
     }
 
+    startingRef.current = true
     setStarting(true)
     let scanner
     try {
@@ -336,7 +350,6 @@ function CameraPanel({
       )
       if (mountedRef.current) {
         setCameraOn(true)
-        onLiveChange(true)
       }
     } catch (err) {
       scannerRef.current = null
@@ -347,9 +360,12 @@ function CameraPanel({
       }
       if (mountedRef.current) setError(cameraErrorMessage(err))
     } finally {
+      startingRef.current = false
       if (mountedRef.current) setStarting(false)
     }
   }
+
+  startCameraRef.current = startCamera
 
   async function handleScan(raw) {
     if (busyRef.current) return
@@ -483,7 +499,7 @@ function CameraPanel({
       </select>
       {cameras.length === 0 && !loadingCameras && (
         <p className="mt-1 text-xs text-ink-700">
-          Belum ada kamera. Klik Deteksi kamera di atas atau langsung gunakan input manual.
+          Belum ada kamera terdeteksi. Gunakan input manual atau coba deteksi ulang di atas.
         </p>
       )}
 
@@ -496,20 +512,20 @@ function CameraPanel({
         )}
         {!cameraOn && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-sand-50/70 px-4 text-center text-sm font-semibold text-ink-700">
-            {starting ? 'Menyalakan kamera…' : 'Kamera belum aktif'}
+            {starting || loadingCameras ? 'Menyiapkan kamera…' : 'Kamera belum aktif'}
           </div>
         )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {!cameraOn && (
+        {!cameraOn && !starting && !loadingCameras && cameraId && (
           <button
             type="button"
             onClick={startCamera}
             disabled={!canStart}
             className={`rounded-full px-5 py-2.5 text-sm font-semibold text-sand-50 transition disabled:cursor-not-allowed disabled:opacity-60 ${panel.button}`}
           >
-            {starting ? 'Menyalakan…' : 'Aktifkan kamera'}
+            Aktifkan kamera
           </button>
         )}
         {cameraOn && (
