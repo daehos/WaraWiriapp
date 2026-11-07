@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite --mode emulator",
     "build": "vite build",
     "lint": "oxlint",
     "test": "node --test \"src/lib/*.test.js\"",

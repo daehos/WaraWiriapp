@@ -50,6 +50,10 @@ export function validateReservation(values) {
     errors.pax = 'Jumlah orang terlalu besar.'
   }
 
+  const waktu = (values.waktu ?? '').trim()
+  if (!waktu) errors.waktu = 'Waktu kunjungan wajib dipilih.'
+  else if (waktu.length > 30) errors.waktu = 'Waktu kunjungan terlalu panjang.'
+
   const jenis = (values.jenisWisata ?? '').trim()
   if (jenis.length > 100) errors.jenisWisata = 'Jenis wisata terlalu panjang.'
 

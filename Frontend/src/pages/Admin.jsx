@@ -15,8 +15,12 @@ import {
   runTransaction,
   setDoc,
 } from 'firebase/firestore'
-import { STATUS_LABEL, filterReservations, sortReservations } from '../lib/admin'
+import { STATUS_LABEL, filterReservations, guideNotifyInfo, sortReservations } from '../lib/admin'
 import { sendStatusEmail } from '../lib/email'
+import { USE_EMULATOR } from '../lib/env'
+import { createEmailJsMailer, notifyGuideInBrowser } from '../lib/guideJob'
+import { describeGuideResult, requestGuideNotification } from '../lib/guideNotify'
+import { createBrowserStore } from '../lib/guideStore'
 import { auth, db } from '../lib/firebase'
 import { todayISO } from '../lib/reservation'
 import { randomManualCode, randomTicketCode } from '../lib/ticket'
@@ -341,6 +345,43 @@ function Dashboard({ user }) {
     throw new Error('Kode manual tidak tersedia. Coba lagi.')
   }
 
+  // Lokal (emulator): lewat Backend -> kotak keluar. Online: dijalankan di browser
+  // admin dan dikirim lewat EmailJS (hosting statis tidak punya server Backend).
+  async function notifyGuide(id) {
+    if (USE_EMULATOR) return requestGuideNotification(user, id)
+    try {
+      return await notifyGuideInBrowser({
+        store: createBrowserStore(db),
+        mailer: createEmailJsMailer(),
+        id,
+      })
+    } catch (err) {
+      const hint = err?.code === 'permission-denied' ? ' (aturan Firestore belum diperbarui?)' : ''
+      return { ran: false, reason: `Penugasan pemandu gagal dijalankan${hint}. Coba "Kirim email pemandu".` }
+    }
+  }
+
+  async function refreshRow(id) {
+    try {
+      const fresh = await getDoc(doc(db, 'reservations', id))
+      if (fresh.exists()) {
+        setRows((current) => current.map((r) => (r.id === id ? { ...r, ...fresh.data() } : r)))
+      }
+    } catch {
+      // tabel diperbarui saat halaman dimuat ulang
+    }
+  }
+
+  async function resendGuide(id) {
+    setSavingId(id)
+    setError('')
+    setNotice(null)
+    const guide = describeGuideResult(await notifyGuide(id))
+    await refreshRow(id)
+    setNotice({ ok: guide.ok, text: guide.text })
+    setSavingId('')
+  }
+
   async function deliverTicket(id, { approve = false } = {}) {
     setSavingId(id)
     setError('')
@@ -366,21 +407,28 @@ function Dashboard({ user }) {
       ),
     )
 
+    let visitor
     try {
       const info = await sendStatusEmail(ticket)
-      setNotice(
-        info.sent
-          ? { ok: true, text: `Tiket terkirim ke ${info.to}.` }
-          : { ok: false, text: `Tiket tersimpan, email tidak terkirim: ${info.reason}` },
-      )
+      visitor = info.sent
+        ? { ok: true, text: `Tiket terkirim ke ${info.to}.` }
+        : { ok: false, text: `Tiket tersimpan, email tidak terkirim: ${info.reason}` }
     } catch {
-      setNotice({
-        ok: false,
-        text: 'Tiket tersimpan, tetapi email gagal dikirim. Coba kirim ulang.',
-      })
-    } finally {
-      setSavingId('')
+      visitor = { ok: false, text: 'Tiket tersimpan, tetapi email gagal dikirim. Coba kirim ulang.' }
     }
+
+    // Approve juga memicu penugasan pemandu + email penugasannya.
+    let guide = null
+    if (approve) {
+      guide = describeGuideResult(await notifyGuide(id))
+      await refreshRow(id)
+    }
+
+    setNotice({
+      ok: visitor.ok && (guide?.ok ?? true),
+      text: guide ? `${visitor.text} ${guide.text}` : visitor.text,
+    })
+    setSavingId('')
   }
 
   async function setStatus(id, status) {
@@ -649,14 +697,16 @@ function Dashboard({ user }) {
             )}
           </div>
           <div className="mt-3 overflow-x-auto rounded-2xl border border-forest-100 bg-white">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[1040px] text-left text-sm">
               <thead className="bg-forest-50 text-forest-700">
                 <tr>
                   {sortHeader('nama', 'Nama')}
                   {sortHeader('kontak', 'Kontak')}
                   {sortHeader('tanggal', 'Tanggal')}
+                  {sortHeader('waktu', 'Waktu')}
                   {sortHeader('pax', 'Pax')}
                   {sortHeader('jenisWisata', 'Jenis wisata')}
+                  {sortHeader('pemandu', 'Pemandu')}
                   {sortHeader('status', 'Status')}
                   <th scope="col" className="px-4 py-3">Aksi</th>
                 </tr>
@@ -667,8 +717,26 @@ function Dashboard({ user }) {
                   <td className="px-4 py-3 font-semibold text-ink-900">{r.nama}</td>
                   <td className="px-4 py-3 text-ink-700">{r.kontak}</td>
                   <td className="px-4 py-3 text-ink-700">{r.tanggal}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-ink-700">{r.waktu ?? '—'}</td>
                   <td className="px-4 py-3 text-ink-700">{r.pax}</td>
                   <td className="px-4 py-3 text-ink-700">{r.jenisWisata ?? '—'}</td>
+                  <td className="px-4 py-3 text-ink-700">
+                    {r.guideName ? (
+                      <span className="font-semibold text-ink-900">{r.guideName}</span>
+                    ) : (
+                      '—'
+                    )}
+                    {(() => {
+                      const info = guideNotifyInfo(r)
+                      if (info.label === '—') return null
+                      const tone = {
+                        ok: 'text-forest-700',
+                        warn: 'text-clay-600',
+                        muted: 'text-ink-700',
+                      }[info.tone]
+                      return <span className={`block text-xs ${tone}`}>{info.label}</span>
+                    })()}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -699,14 +767,26 @@ function Dashboard({ user }) {
                         </button>
                       </div>
                     ) : r.status === 'dikonfirmasi' ? (
-                      <button
-                        type="button"
-                        disabled={savingId === r.id}
-                        onClick={() => deliverTicket(r.id)}
-                        className="rounded-full border border-forest-100 px-4 py-1.5 text-xs font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
-                      >
-                        {r.ticketCode ? 'Kirim tiket' : 'Terbitkan tiket'}
-                      </button>
+                      <div className="flex flex-col items-start gap-2">
+                        <button
+                          type="button"
+                          disabled={savingId === r.id}
+                          onClick={() => deliverTicket(r.id)}
+                          className="rounded-full border border-forest-100 px-4 py-1.5 text-xs font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
+                        >
+                          {r.ticketCode ? 'Kirim tiket' : 'Terbitkan tiket'}
+                        </button>
+                        {!r.guideNotifiedAt && (
+                          <button
+                            type="button"
+                            disabled={savingId === r.id}
+                            onClick={() => resendGuide(r.id)}
+                            className="rounded-full border border-forest-100 px-4 py-1.5 text-xs font-semibold text-forest-700 transition hover:bg-forest-100 disabled:opacity-60"
+                          >
+                            Kirim email pemandu
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-ink-700">—</span>
                     )}
@@ -715,7 +795,7 @@ function Dashboard({ user }) {
               ))}
                 {sorted.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="px-4 py-10 text-center text-ink-700">
+                    <td colSpan="9" className="px-4 py-10 text-center text-ink-700">
                       Tidak ada reservasi yang cocok.
                     </td>
                   </tr>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fetchQuota, submitReservation, todayISO, validateReservation } from '../lib/reservation'
 import { village } from '../data/village'
 
-const EMPTY = { nama: '', kontak: '', email: '', tanggal: '', pax: '', jenisWisata: '' }
+const EMPTY = { nama: '', kontak: '', email: '', tanggal: '', pax: '', waktu: '', jenisWisata: '' }
 
 // ponytail: dihitung sekali saat load, bukan tiap render — validasi tanggal yang
 // benar-benar menentukan tetap di validateReservation() saat submit.
@@ -39,6 +39,7 @@ export default function ReservationSection() {
   const [quota, setQuota] = useState(null)
 
   const jenisOptions = village.reservation.jenisWisata
+  const waktuOptions = village.reservation.waktu
 
   useEffect(() => {
     if (!values.tanggal) return
@@ -62,7 +63,7 @@ export default function ReservationSection() {
     event.preventDefault()
     setFormError('')
 
-    const nextErrors = validateReservation(values, jenisOptions)
+    const nextErrors = validateReservation(values, jenisOptions, waktuOptions)
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
       const firstField = Object.keys(nextErrors)[0]
@@ -148,6 +149,12 @@ export default function ReservationSection() {
                 <dt className="font-semibold text-forest-700">Tanggal</dt>
                 <dd className="text-ink-900">{formatDate(confirmation.tanggal)}</dd>
               </div>
+              {confirmation.waktu && (
+                <div className="flex justify-between gap-4">
+                  <dt className="font-semibold text-forest-700">Waktu</dt>
+                  <dd className="text-ink-900">{confirmation.waktu} WIB</dd>
+                </div>
+              )}
               <div className="flex justify-between gap-4">
                 <dt className="font-semibold text-forest-700">Jumlah orang</dt>
                 <dd className="text-ink-900">{confirmation.pax} pax</dd>
@@ -313,6 +320,33 @@ export default function ReservationSection() {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="reservasi-waktu" className="text-sm font-semibold text-forest-700">
+                Waktu kunjungan (WIB) <span className="text-clay-600">*</span>
+              </label>
+              <select
+                id="reservasi-waktu"
+                name="waktu"
+                value={values.waktu}
+                onChange={setField('waktu')}
+                aria-invalid={Boolean(errors.waktu)}
+                aria-describedby={errors.waktu ? 'error-waktu' : undefined}
+                className={`mt-1 ${fieldClass(errors.waktu)}`}
+              >
+                <option value="" disabled hidden>Pilih slot waktu</option>
+                {waktuOptions.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot}
+                  </option>
+                ))}
+              </select>
+              {errors.waktu && (
+                <p id="error-waktu" className="mt-1 text-sm text-clay-600">
+                  {errors.waktu}
+                </p>
+              )}
             </div>
 
             <div>

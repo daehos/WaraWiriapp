@@ -10,7 +10,7 @@ export function todayISO(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-export function validateReservation(values, jenisWisataOptions = []) {
+export function validateReservation(values, jenisWisataOptions = [], waktuOptions = []) {
   const errors = {}
 
   const nama = (values.nama ?? '').trim()
@@ -43,6 +43,13 @@ export function validateReservation(values, jenisWisataOptions = []) {
     errors.pax = 'Jumlah orang wajib diisi.'
   } else if (!Number.isInteger(Number(pax)) || Number(pax) < 1) {
     errors.pax = 'Jumlah orang harus bilangan bulat minimal 1.'
+  }
+
+  const waktu = (values.waktu ?? '').trim()
+  if (!waktu) {
+    errors.waktu = 'Waktu kunjungan wajib dipilih.'
+  } else if (waktu.length > 30 || (waktuOptions.length > 0 && !waktuOptions.includes(waktu))) {
+    errors.waktu = 'Pilih waktu kunjungan yang tersedia.'
   }
 
   const jenis = (values.jenisWisata ?? '').trim()
@@ -109,6 +116,7 @@ export async function submitReservation(values) {
     email: values.email.trim().toLowerCase() || null,
     tanggal: values.tanggal,
     pax: Number(values.pax),
+    waktu: values.waktu.trim(),
     jenisWisata: values.jenisWisata.trim() || null,
     createdAt: new Date().toISOString(),
   }

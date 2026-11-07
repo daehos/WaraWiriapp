@@ -4,12 +4,28 @@ export const STATUS_LABEL = {
   ditolak: 'Ditolak',
 }
 
+// Status penugasan pemandu + notifikasi H-1, ditulis oleh job di Backend
+// (lihat Backend/src/core/runJob.js). Kolom ini hanya menampilkannya.
+export function guideNotifyInfo(r) {
+  if (r.status !== 'dikonfirmasi') return { label: '—', tone: 'muted' }
+  if (r.guideNotifiedAt) return { label: 'Notifikasi terkirim', tone: 'ok' }
+  if (r.guideNotifyStatus === 'gagal') return { label: 'Email gagal, dicoba ulang', tone: 'warn' }
+  if (!r.guideId) {
+    return r.guideNotifyStatus === 'tanpa-pemandu'
+      ? { label: 'Belum ada pemandu (manajer diberi tahu)', tone: 'warn' }
+      : { label: 'Menunggu alokasi', tone: 'muted' }
+  }
+  return { label: 'Ditugaskan, email belum terkirim', tone: 'muted' }
+}
+
 const collator = new Intl.Collator('id', { sensitivity: 'base', numeric: true })
 
 export const SORT_VALUE = {
   nama: (r) => r.nama ?? '',
   kontak: (r) => r.kontak ?? '',
   tanggal: (r) => r.tanggal ?? '',
+  waktu: (r) => r.waktu ?? '',
+  pemandu: (r) => r.guideName ?? '',
   pax: (r) => Number(r.pax) || 0,
   jenisWisata: (r) => r.jenisWisata ?? '',
   status: (r) => STATUS_LABEL[r.status] ?? r.status ?? '',

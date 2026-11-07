@@ -1,9 +1,7 @@
-// ponytail: EmailJS client config is public by design (browser SDK); lock it by domain in the dashboard.
+import { EMAILJS, postEmailJs } from './emailjs.js'
+import { USE_EMULATOR } from './env.js'
 import { buildTicketUrl } from './ticket.js'
 
-const SERVICE_ID = 'service_585vhga'
-const TEMPLATE_ID = 'template_m9m7tsf'
-const PUBLIC_KEY = 'nRFEKnNfwxqkGusmn'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 export function isEmail(value) {
@@ -20,7 +18,7 @@ export function buildTemplateParams(reservation) {
     is_approved: approved ? 'true' : '',
     is_declined: approved ? '' : 'true',
     tanggal_kunjungan: reservation.tanggal,
-    waktu_kunjungan: 'Sesuai jam operasional',
+    waktu_kunjungan: reservation.waktu ? `${reservation.waktu} WIB` : 'Sesuai jam operasional',
     lokasi_gedung_ruangan: 'Desa Wisata Manud Jaya, Kecamatan Cililin',
     jumlah_orang: `${reservation.pax} orang`,
     alasan_penolakan: 'jadwal atau kuota pada tanggal yang diajukan tidak tersedia',
@@ -30,7 +28,10 @@ export function buildTemplateParams(reservation) {
 export async function sendStatusEmail(reservation) {
   const approved = reservation.status === 'dikonfirmasi'
 
-  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+  if (USE_EMULATOR) {
+    return { sent: false, reason: 'Email EmailJS dimatikan di mode lokal (emulator).' }
+  }
+  if (!EMAILJS.serviceId || !EMAILJS.visitorTemplateId || !EMAILJS.publicKey) {
     return { sent: false, reason: 'Email belum dikonfigurasi (EmailJS).' }
   }
   if (approved && (!reservation.ticketCode || !reservation.manualCode)) {
@@ -56,31 +57,19 @@ export async function sendStatusEmail(reservation) {
     ? buildTicketUrl(origin, reservation.id, reservation.ticketCode, reservation.manualCode)
     : ''
 
-  try {
-    const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id: SERVICE_ID,
-        template_id: TEMPLATE_ID,
-        user_id: PUBLIC_KEY,
-        template_params: {
-          ...buildTemplateParams(reservation),
-          to_email: to,
-          ticket_url: ticketUrl,
-          ticket_code: ticketCode,
-        },
-      }),
-    })
-    if (!res.ok) {
-      const detail = await res.text().catch(() => '')
-      return {
-        sent: false,
-        reason: `EmailJS menolak pengiriman (${res.status}). ${detail.slice(0, 120)}`,
-      }
+  const result = await postEmailJs(EMAILJS.visitorTemplateId, {
+    ...buildTemplateParams(reservation),
+    to_email: to,
+    ticket_url: ticketUrl,
+    ticket_code: ticketCode,
+  })
+  if (!result.ok) {
+    return {
+      sent: false,
+      reason: result.status
+        ? `EmailJS menolak pengiriman (${result.status}). ${result.detail}`
+        : result.detail,
     }
-    return { sent: true, to }
-  } catch {
-    return { sent: false, reason: 'Layanan email tidak terjangkau.' }
   }
+  return { sent: true, to }
 }

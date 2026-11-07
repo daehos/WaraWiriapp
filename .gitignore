@@ -5,7 +5,10 @@ dist/
 .env
 .env.*
 !.env.example
+!.env.emulator
 *serviceAccount*.json
 *firebase-adminsdk*.json
 .DS_Store
 .playwright-mcp/
+Backend/outbox/
+*-debug.log

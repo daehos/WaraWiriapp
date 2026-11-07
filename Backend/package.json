@@ -9,10 +9,21 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env src/app.js",
     "migrate": "node --env-file-if-exists=.env src/scripts/migrateJsonToFirestore.js",
-    "make-admin": "node --env-file-if-exists=.env src/scripts/makeAdmin.js"
+    "make-admin": "node --env-file-if-exists=.env src/scripts/makeAdmin.js",
+    "test": "node --test src",
+    "seed-guides": "node --env-file-if-exists=.env src/scripts/seedGuides.js",
+    "notify": "node --env-file-if-exists=.env src/scripts/notifyGuides.js",
+    "simulate": "node src/scripts/simulate.js",
+    "local": "node --env-file-if-exists=.env --env-file=.env.emulator src/scripts/localDev.js",
+    "local:emulators": "firebase emulators:start --only auth,firestore --project warawiriapp-da23e",
+    "local:seed": "node --env-file-if-exists=.env --env-file=.env.emulator src/scripts/localSeed.js",
+    "local:notify": "node --env-file-if-exists=.env --env-file=.env.emulator src/scripts/notifyGuides.js"
   },
   "dependencies": {
     "firebase-admin": "^14.5.0",
     "nodemailer": "^10.1.7"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.34.2"
   }
 }

@@ -4,11 +4,14 @@ import { hasQuota, todayISO, validateReservation } from './reservation.js'
 
 const JENIS = ['Trekking Sawah', 'Budaya & Kerajinan', 'Homestay']
 
+const WAKTU = ['08:00 – 10:00', '10:00 – 12:00']
+
 const base = {
   nama: 'Budi Santoso',
   kontak: '081234567890',
   tanggal: '2099-01-15',
   pax: '2',
+  waktu: '08:00 – 10:00',
   jenisWisata: '',
 }
 
@@ -16,9 +19,24 @@ test('data lengkap dan valid menghasilkan error kosong', () => {
   assert.deepEqual(validateReservation(base, JENIS), {})
 })
 
-test('field kosong semua menghasilkan 4 error wajib', () => {
-  const errors = validateReservation({ nama: '', kontak: '', tanggal: '', pax: '' }, JENIS)
-  assert.deepEqual(Object.keys(errors).sort(), ['nama', 'pax', 'tanggal', 'kontak'].sort())
+test('field kosong semua menghasilkan 5 error wajib', () => {
+  const errors = validateReservation(
+    { nama: '', kontak: '', tanggal: '', pax: '', waktu: '' },
+    JENIS,
+    WAKTU,
+  )
+  assert.deepEqual(
+    Object.keys(errors).sort(),
+    ['nama', 'pax', 'tanggal', 'kontak', 'waktu'].sort(),
+  )
+})
+
+test('waktu kunjungan wajib dan harus salah satu slot yang tersedia', () => {
+  assert.ok(validateReservation({ ...base, waktu: '' }, JENIS, WAKTU).waktu)
+  assert.ok(validateReservation({ ...base, waktu: '23:00 – 24:00' }, JENIS, WAKTU).waktu)
+  assert.equal(validateReservation({ ...base, waktu: '10:00 – 12:00' }, JENIS, WAKTU).waktu, undefined)
+  // tanpa daftar slot (mis. validasi di submit), cukup tidak kosong
+  assert.equal(validateReservation(base, JENIS).waktu, undefined)
 })
 
 test('nama pendek ditolak', () => {

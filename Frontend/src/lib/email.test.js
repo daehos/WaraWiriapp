@@ -24,6 +24,13 @@ test('reservasi ditolak memakai flag is_declined', () => {
   assert.equal(params.is_declined, 'true')
 })
 
+test('waktu kunjungan memakai slot reservasi, dengan fallback untuk data lama', () => {
+  const withSlot = buildTemplateParams({ ...base, status: 'dikonfirmasi', waktu: '08:00 – 10:00' })
+  assert.equal(withSlot.waktu_kunjungan, '08:00 – 10:00 WIB')
+  const legacy = buildTemplateParams({ ...base, status: 'dikonfirmasi' })
+  assert.equal(legacy.waktu_kunjungan, 'Sesuai jam operasional')
+})
+
 test('isEmail hanya menerima format email', () => {
   assert.equal(isEmail('budi@example.com'), true)
   assert.equal(isEmail('081234567890'), false)

@@ -64,5 +64,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`WaraWiri backend berjalan di http://localhost:${PORT}`)
-  console.log(`API: GET/POST http://localhost:${PORT}/api/reservations`)
+  console.log(`API: GET/POST http://localhost:${PORT}/api/reservations · POST /api/guide-notify`)
 })
