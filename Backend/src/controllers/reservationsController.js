@@ -8,6 +8,7 @@ import {
   readReservation,
   readReservations,
 } from '../models/reservationModel.js'
+import { runGuideJobNow, resultFor } from '../services/guideNotifier.js'
 import { validateReservation } from '../validators.js'
 
 async function adminGuard(req, res) {
@@ -31,6 +32,7 @@ export async function createReservation(req, res) {
     email: String(body.email ?? ''),
     tanggal: String(body.tanggal ?? ''),
     pax: String(body.pax ?? ''),
+    waktu: String(body.waktu ?? ''),
     jenisWisata: String(body.jenisWisata ?? ''),
   }
 
@@ -47,6 +49,7 @@ export async function createReservation(req, res) {
     email: values.email.trim().toLowerCase() || null,
     tanggal: values.tanggal,
     pax: Number(values.pax),
+    waktu: values.waktu.trim(),
     jenisWisata: values.jenisWisata.trim() || null,
     createdAt: new Date().toISOString(),
   }
@@ -83,5 +86,25 @@ export async function notifyReservation(req, res) {
     sendJson(res, 200, await sendStatusEmail(reservation))
   } catch (error) {
     sendJson(res, 200, { sent: false, reason: error.message })
+  }
+}
+
+// POST /api/guide-notify { id } — dipanggil dashboard admin tepat setelah Approve.
+export async function notifyGuideForReservation(req, res) {
+  if (!(await adminGuard(req, res))) return
+
+  const body = await readJsonBody(req)
+  const id = String(body.id ?? '')
+  if (!(await readReservation(id))) {
+    return sendJson(res, 404, { error: 'Reservasi tidak ditemukan.' })
+  }
+
+  try {
+    const out = await runGuideJobNow()
+    if (!out.ran) return sendJson(res, 200, { ran: false, reason: out.reason })
+    sendJson(res, 200, { ran: true, mode: out.mode, via: out.via, ...resultFor(id, out.summary) })
+  } catch (error) {
+    console.error(error)
+    sendJson(res, 200, { ran: false, reason: 'Job notifikasi pemandu gagal dijalankan.' })
   }
 }

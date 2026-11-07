@@ -163,6 +163,130 @@ Tidak perlu template baru dan tidak perlu attachment. Ganti body template dengan
 
 **Halaman tiket publik:** `/tiket?data=WWR-TKT|nomor-reservasi|kode` — QR dibuat di browser dan bisa diunduh. Halaman ini tidak membaca Firestore, jadi tidak membocorkan data reservasi; validasi tetap dilakukan scanner.
 
+### Sprint 5 — Notifikasi Penugasan Warga/Pemandu (PBI-5)
+
+| # | Acceptance Criteria | Status |
+|---|---|---|
+| 1 | Notifikasi bisa dikirim ke email pemandu/pengelola yang didaftarkan manual | ✅ `Backend/data/guides.json` → `npm run seed-guides`; pengirim SMTP (`npm run notify`) |
+| 2 | Notifikasi diterima H-1 sebelum hari kunjungan | ✅ Job terjadwal GitHub Actions tiap jam; jendela H-1 dibuka 07:00 WIB |
+| 3 | Berisi detail rombongan, jumlah, destinasi, tanggal & waktu | ✅ Lihat template di `Backend/src/core/emailTemplate.js` |
+| 4 | Email masuk Inbox, bukan Spam | 🟡 Template sudah ramah-spam (teks + HTML, tanpa lampiran/tautan asing); hasil akhir bergantung SPF/DKIM/DMARC pengirim — lihat catatan di bawah |
+
+**Cara kerja:**
+
+- **Form reservasi** kini wajib memilih **slot waktu** (`village.reservation.waktu`, disimpan di field `waktu`). Destinasi tetap opsional; tanpa destinasi, rombongan bisa dilayani pemandu mana pun.
+- **Trigger**: reservasi berstatus `dikonfirmasi` (admin menekan Approve).
+- **Antrian alokasi** (`Backend/src/core/allocator.js`, murni & ber-test): FIFO menurut waktu disetujui → pemandu aktif yang menguasai destinasi → belum melewati batas `maxGroups` rombongan/hari → belum punya rombongan di slot waktu yang sama → pilih yang bebannya paling ringan (seri: field `urutan`). Pemandu penuh otomatis **dioper** ke pemandu lain; penugasan yang sudah ada tidak berubah (idempoten).
+- **Notifikasi** (`Backend/src/core/planner.js`): email ke pemandu dengan **tembusan pengelola** (`MANAGER_EMAIL`). Ada dua mode (`NOTIFY_MODE`):
+  - `h-1` (**default/produksi**, sesuai kartu): mulai H-1 pukul 07:00 WIB (`NOTIFY_HOUR_WIB`).
+  - `segera` (**simulasi/demo**, dipakai otomatis di `npm run local`): begitu admin menekan **Approve**, pemandu langsung dipilih dan emailnya dikirim — tanpa menunggu H-1. Persetujuan terlambat tetap terkirim di run berikutnya. Kegagalan SMTP dicoba ulang tiap jam (maks 5×). Kalau tidak ada pemandu yang tersedia, **pengelola diperingatkan sekali**; begitu pemandu ditambahkan, alokasi + notifikasi berjalan otomatis.
+- **Data minimum di email**: tanggal & waktu, destinasi, nama rombongan, jumlah pengunjung, nomor reservasi. Kontak pengunjung sengaja tidak dikirim (minimisasi data pribadi).
+- **Dashboard admin** (`/admin`) menampilkan kolom **Waktu** dan **Pemandu** + status notifikasi (Menunggu alokasi / Ditugaskan, email belum terkirim / Notifikasi terkirim / Email gagal / Belum ada pemandu) + tombol **Kirim email pemandu** untuk kirim ulang.
+- Status ditulis ke dokumen reservasi: `guideId`, `guideName`, `guideAssignedAt`, `guideNotifiedAt`, `guideNotifyStatus`, `guideNotifyAttempts`, `guideNotifyError`, `managerAlertAt`. Penulisnya hanya job Backend (Admin SDK) atau **admin yang login** di dashboard (mode online); `firestore.rules` memvalidasi tiap field, dan pengunjung publik tidak bisa menulisnya.
+
+**Simulasi tanpa Firebase/SMTP (untuk demo tugas):**
+
+```bash
+cd Backend
+npm test            # 34 test: alokasi, jendela H-1, idempotensi, retry, email
+npm run simulate    # skenario lengkap dengan jam palsu; email ditulis ke Backend/outbox/simulate/index.html
+```
+
+`simulate` memutar satu hari: run 06:00 (alokasi, belum kirim) → 07:05 (email terkirim, satu SMTP gagal, satu rombongan tanpa pemandu → pengelola diperingatkan) → 08:05 (retry) → 09:30 (persetujuan terlambat) → 10:05 (pemandu baru mengambil rombongan yang tersisa) → 11:05 (tidak ada email ganda). Buka `Backend/outbox/simulate/index.html` di browser untuk melihat tiap email.
+
+**Email pemandu di situs online (`https://warawiriapp-da23e.web.app`):**
+
+Hosting Firebase statis tidak punya server Backend, jadi di situs online **dashboard admin sendiri yang menjalankan alokasi dan mengirim email lewat EmailJS** — pola yang sama dengan email tiket pengunjung. Kode alokasi/antrian/template-nya **sama persis** dengan Backend (`Backend/src/core`, diimpor oleh `Frontend/src/lib/guideJob.js`); hanya penyimpanan (Firestore klien) dan pengirim (EmailJS) yang berbeda. Daftar pemandu dibaca dari `Backend/data/guides.json` yang ikut ter-bundle ke situs (jadi tidak perlu seed ke Firestore).
+
+Begitu admin menekan **Approve**: tiket dikirim ke pengunjung → pemandu dipilih dari antrian → email penugasan terkirim ke `pemandu.<nama>@mailinator.com` dengan tembusan `pengelola.warawiri@mailinator.com`. Kalau semua pemandu penuh, pengelola yang diperingatkan. Klik Approve/Kirim ulang berkali-kali tidak membuat email ganda. Email hanya dikirim untuk reservasi yang di-approve (reservasi lama tidak ikut dikirim ulang).
+
+*Setup sekali (±5 menit), sebelum demo:*
+
+1. **Buat template kedua di EmailJS** (paket gratis mengizinkan 2 template; yang pertama sudah dipakai email tiket). Buka [dashboard EmailJS](https://dashboard.emailjs.com/admin/templates) → **Create New Template**, lalu:
+   - Tab **Settings** → **Template ID**: ganti menjadi persis `template_pemandu`
+   - **To email**: `{{to_email}}` · **Cc**: `{{cc_email}}` · **Reply To**: `{{reply_to}}` · **From name**: `{{from_name}}` · **Subject**: `{{subject}}`
+   - Tab **Content** → pilih **Code editor (HTML)**, hapus isinya, tempel satu baris: `{{{message_html}}}` (tiga kurung = HTML tidak di-escape). Kalau di inbox terlihat tag HTML mentah, ganti isinya menjadi `{{message}}` (teks biasa).
+   - **Save**. Pastikan **Service** yang dipilih sama dengan email tiket (`service_585vhga`).
+2. **Deploy** (urutannya penting — lihat "Deploy ke Production" di bawah): merge ke `main`. Workflow sekarang menayangkan `firestore.rules` terlebih dulu, baru situs.
+3. **Coba**: login `/admin` → Approve satu reservasi (isi email pengunjung dengan alamat milik sendiri untuk melihat tiketnya juga) → buka `https://www.mailinator.com/v4/public/inboxes.jsp?to=pemandu.asep` (atau `wati`, `dede`, `pengelola.warawiri`).
+
+*Kalau pemandu tidak menerima email:* pesan di atas tabel admin menyebut penyebabnya (mis. template belum ada → `template_pemandu` tidak ditemukan). Perbaiki, lalu klik **Kirim email pemandu** pada baris itu — tidak perlu Approve ulang.
+
+*Catatan:* Mailinator itu publik (siapa saja yang tahu nama inbox bisa membaca) — pakai data uji. EmailJS gratis dibatasi 200 email/bulan dan 1 permintaan/detik (sudah diberi jeda otomatis). Alokasi dijalankan dari browser admin, jadi jangan Approve bersamaan dari dua admin pada reservasi yang berebut pemandu yang sama.
+
+**Mencoba seluruh sistem di localhost (emulator Firebase):**
+
+Website asli + database + login admin berjalan penuh **di laptop**, tanpa menyentuh project Firebase produksi dan tanpa kunci apa pun. Aturan `firestore.rules` yang dipakai emulator sama persis dengan produksi.
+
+Prasyarat: Node 22+, **Java 21+** (`java -version`), dan internet saat pertama kali (mengunduh emulator).
+
+```bash
+# Terminal 1 — emulator + data uji + website
+cd Backend && npm install
+cd ../Frontend && npm install
+cd ../Backend && npm run local
+```
+
+| Alamat | Isi |
+|---|---|
+| http://localhost:5173 | Website (ada lencana **MODE LOKAL** di kiri bawah) |
+| http://localhost:5173/admin | Dashboard admin — login `admin@warawiri.local` / `admin123` |
+| http://localhost:4000 | Emulator UI: lihat & ubah isi database langsung |
+| `Backend/outbox/local/index.html` | Email penugasan yang dihasilkan (buka di browser) |
+| http://localhost:3001 | Backend API (dipanggil dashboard saat Approve) |
+
+Data uji (kunjungan **besok**): 3 reservasi sudah disetujui + 3 menunggu, 3 pemandu (Asep maks 2/hari, Wati maks 3, Dede maks 1).
+
+Skenario yang bisa dicoba (mode `segera`, jadi tidak perlu menunggu H-1):
+
+1. **Buat reservasi** di form (perhatikan kolom *Waktu kunjungan*), lalu cek tampil di `/admin`.
+2. **Approve** reservasi menunggu di `/admin`. Dashboard memanggil Backend (`POST /api/guide-notify`) dan notifikasi di atas tabel menyebut hasilnya, mis. *"Pemandu Wati Susanti ditugaskan; email penugasan terkirim ke …"*. Kolom **Pemandu** ikut terisi, dan emailnya muncul di `Backend/outbox/local/index.html`. (Email tiket EmailJS ke pengunjung dimatikan di mode lokal; pesan "email tidak terkirim" itu normal.)
+3. Reservasi seed yang **sudah disetujui** ikut dialokasikan pada Approve pertama (antrian FIFO), jadi beberapa email langsung muncul sekaligus.
+4. **Approve "Rombongan Kantor Dinas"** (Trekking 13:00) → Asep & Dede sudah penuh, jadi muncul **"Belum ada pemandu"** dan email peringatan untuk pengelola.
+5. Di Emulator UI → Firestore → `guides`, **tambahkan pemandu** yang menguasai Trekking (salin dokumen yang ada, ganti `id`/`nama`/`email`), lalu jalankan `cd Backend && npm run local:notify` → rombongan tadi otomatis mendapat pemandu baru. Atur `maxGroups` untuk melihat efek batas dan oper otomatis.
+6. Approve/jalankan job berulang atau klik cepat dua kali → tidak ada email ganda.
+7. Mencoba perilaku produksi (H-1): `npm run local:notify -- --mode=h-1 --h-1` ("sekarang" = hari ini 07:05 WIB) atau `-- --mode=h-1 --now=2026-11-04T06:00:00+07:00` (sebelum 07:00 → alokasi jalan, email belum dikirim).
+
+**Melihat email benar-benar masuk (Mailinator):**
+
+Email pemandu di `Backend/data/guides.json` memakai alamat [Mailinator](https://www.mailinator.com) (`pemandu.asep@`, `pemandu.wati@`, `pemandu.dede@mailinator.com`; pengelola `pengelola.warawiri@mailinator.com`). Secara default mode lokal **hanya menulis email ke `Backend/outbox/local/`** (aman, tidak ada yang keluar dari laptop). Agar email sungguh terkirim dan tampil di inbox Mailinator:
+
+1. Siapkan akun SMTP, mis. Gmail: aktifkan 2-Step Verification lalu buat **App Password** 16 huruf.
+2. `cd Backend && cp .env.example .env`, lalu isi:
+   ```env
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=alamatmu@gmail.com
+   SMTP_PASS=app-password-16-huruf
+   SEND_REAL_EMAIL=true
+   ```
+   (`.env` sudah di-`.gitignore`; jangan di-commit.)
+3. Restart `npm run local`, klik **Approve** di `/admin`. Pesan di atas tabel kini berbunyi *"…email penugasan terkirim ke …"* (bukan "dibuat di kotak keluar lokal").
+4. Buka inbox: `https://www.mailinator.com/v4/public/inboxes.jsp?to=pemandu.asep` (ganti `asep` dengan `wati`, `dede`, atau `pengelola.warawiri`). Salinan email tetap ada di `Backend/outbox/local/`.
+
+Catatan: inbox Mailinator **publik** — siapa pun yang tahu namanya bisa membaca. Pakai hanya data uji, jangan nama/kontak pengunjung asli. Email pertama dari Gmail baru kadang tertunda atau masuk ke tab lain.
+
+Data pemandu di emulator berasal dari `guides.json` saat `npm run local` dinyalakan. Kalau emulator sudah jalan, ubah email langsung di Emulator UI → Firestore → `guides`, atau restart.
+
+Di produksi (hosting statis tanpa Backend) tombol Approve tetap bekerja; dashboard hanya menampilkan bahwa job terjadwal yang akan memberi tahu pemandu. Untuk meniru Approve-langsung-kirim di produksi, deploy Backend dengan `NOTIFY_MODE=segera` dan `SMTP_*`.
+
+Perintah lain: `npm run local:seed` (reset data uji ke awal; emulator harus menyala), `npm run local:emulators` (hanya emulator). Berhenti dengan **Ctrl+C**. Data emulator hilang tiap restart (disengaja).
+
+**Setup produksi (sekali saja):**
+
+1. Publish ulang `firestore.rules` (field `waktu` + field penugasan pemandu yang boleh ditulis admin). Otomatis oleh workflow deploy; cadangan manual: tempel isinya di Firebase Console → Firestore → Rules.
+2. Edit `Backend/data/guides.json` (ganti email contoh), lalu `cd Backend && npm run seed-guides`.
+3. Buat `Backend/.env` dari `.env.example`: isi `SMTP_*` dan `MANAGER_EMAIL`.
+4. Coba dulu tanpa mengirim: `npm run notify -- --dry-run --outbox` (hasil di `Backend/outbox/preview/`). Simulasi waktu: `-- --now=2026-11-04T07:05:00+07:00`.
+5. Untuk jalan otomatis, tambahkan secrets di GitHub (**Settings → Secrets and variables → Actions**): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `MANAGER_EMAIL` (`FIREBASE_SERVICE_ACCOUNT` sudah ada dari deploy). Workflow: [`notify-guides.yml`](.github/workflows/notify-guides.yml) — bisa dijalankan manual dari tab **Actions** (default dry-run, hasil email jadi artifact).
+
+**Catatan:**
+
+- *Inbox vs Spam*: kode tidak bisa menjamin ini. Kirim lewat penyedia terautentikasi (mis. Gmail dengan App Password, Brevo, Resend) atau domain milik desa dengan SPF + DKIM + DMARC; minta pemandu menandai "bukan spam" pada email pertama. Uji dengan `mail-tester.com` sebelum demo.
+- Workflow terjadwal GitHub hanya jalan dari branch `main`, bisa tertunda beberapa menit, dan otomatis nonaktif setelah 60 hari repo tanpa aktivitas.
+- Fungsi input pemandu oleh Admin LSM belum ada (sesuai kartu: sprint berikutnya) — sementara lewat `guides.json` + `seed-guides`.
+- Reservasi lama tanpa `waktu` tetap diproses, tetapi tidak ikut aturan "satu slot, satu pemandu".
+
 ### Sprint berikutnya
 
 Belum diumumkan.
@@ -192,23 +316,27 @@ Kuota per tanggal disimpan di `quotas/{YYYY-MM-DD}` (`limit`, `used`) — bisa d
 
 ```text
 WaraWiriApp/
-├── 📂 .github/workflows/       # deploy-hosting.yml — auto-deploy ke Firebase Hosting
+├── 📂 .github/workflows/       # deploy-hosting.yml (auto-deploy) + notify-guides.yml (job H-1 tiap jam)
 ├── 📄 firestore.rules           # aturan Firestore: create tervalidasi, read/update/delete ditolak
 ├── 📄 firebase.json / .firebaserc  # konfigurasi Firebase Hosting (public: Frontend/dist)
 ├── 📂 Backend/                # API reservasi (opsional — baca admin & migrasi)
 │   ├── 📂 data/
-│   │   └── reservations.json  # data lama — sumber migrasi ke Firestore
+│   │   ├── reservations.json  # data lama — sumber migrasi ke Firestore
+│   │   └── guides.json        # data pemandu manual (PBI-5) → npm run seed-guides
 │   ├── 📂 src/
+│   │   ├── 📂 core/           # PBI-5: allocator (antrian pemandu), planner (jendela H-1), emailTemplate, runJob — murni + test
+│   │   ├── 📂 stores/         # firestoreStore (produksi) & memoryStore (tes/simulasi)
+│   │   ├── 📂 mailers/        # smtpMailer (produksi) & outboxMailer (pratinjau HTML lokal)
 │   │   ├── 📂 controllers/    # reservationsController.js — logika bisnis & response API
 │   │   ├── 📂 models/         # reservationModel.js — baca/tulis Firestore
 │   │   ├── 📂 routes/         # reservations.js — dispatch GET/POST /api/reservations
-│   │   ├── 📂 scripts/        # migrateJsonToFirestore.js — migrasi data JSON lama
+│   │   ├── 📂 scripts/        # migrate, make-admin, seed-guides, notify (job H-1), simulate (demo offline), local* (emulator)
 │   │   ├── firebase.js        # inisialisasi firebase-admin + kredensial
 │   │   ├── validators.js      # validasi server-side (untuk endpoint API)
 │   │   ├── http.js            # helper response & baca body request
 │   │   └── app.js             # entry point: HTTP server + sajikan Frontend/dist
 │   ├── .env.example           # PORT & FIREBASE_SERVICE_ACCOUNT
-│   └── package.json           # `npm start`, `npm run migrate`
+│   └── package.json           # `npm start`, `migrate`, `make-admin`, `seed-guides`, `notify`, `simulate`, `local`, `test`
 │
 └── 📂 Frontend/               # React + Vite + Tailwind CSS
     ├── 📂 src/
@@ -314,7 +442,7 @@ Situs di-host di **Firebase Hosting** (gratis, tanpa kartu kredit) dan di-deploy
 2. Buka repo di GitHub → **Settings → Secrets and variables → Actions → New repository secret**:
    - Name: `FIREBASE_SERVICE_ACCOUNT`
    - Value: seluruh isi file `Backend/serviceAccountKey.json` (tempel apa adanya)
-3. Push ke `main` → tab **Actions** di GitHub akan build `Frontend/dist` lalu deploy ke Hosting.
+3. Push ke `main` → tab **Actions** di GitHub akan menayangkan **`firestore.rules` lebih dulu**, lalu build `Frontend/dist` dan deploy ke Hosting. Urutan ini disengaja (situs baru menulis field yang hanya diizinkan rules baru); rules baru kompatibel dengan situs lama, dan kalau langkah rules gagal, deploy situs ikut berhenti sehingga situs lama tetap utuh.
 
 Hasilnya: **`https://warawiriapp-da23e.web.app`** — setiap push ke `main` auto-deploy.
 
@@ -322,8 +450,9 @@ Catatan:
 
 - Kuota gratis Spark: 10 GB storage, 360 MB/hari transfer — lebih dari cukup.
 - **Kuota per tanggal** sepenuhnya serverless: admin set `limit`, pengunjung menaikkan `used` lewat transaksi, ditolak = counter turun. Tetap jalan tanpa backend.
-- **Email notifikasi** memakai EmailJS dari browser admin (config publik tertanam di `Frontend/src/lib/email.js`), jadi tetap aktif di hosting statis tanpa backend. Masuk folder inbox **tidak bisa dijamin 100%** — gunakan alamat pengirim dengan SPF/DKIM/DMARC yang benar, batasi Allowed Origins, dan minta penerima menandai "bukan spam" bila perlu.
+- **Email notifikasi** memakai EmailJS dari browser admin (config publik tertanam di `Frontend/src/lib/emailjs.js`; email pemandu memakai template kedua `template_pemandu`), jadi tetap aktif di hosting statis tanpa backend. Masuk folder inbox **tidak bisa dijamin 100%** — gunakan alamat pengirim dengan SPF/DKIM/DMARC yang benar, batasi Allowed Origins, dan minta penerima menandai "bukan spam" bila perlu.
 - Counter kuota divalidasi rules, tapi client yang sengaja memakai batch (bukan transaksi) masih bisa memicu lost-update — untuk desa wisata risikonya kecil.
+- Langkah *Deploy Firestore rules* gagal `403`/`permission denied` → di Google Cloud Console → IAM beri service account peran **Firebase Rules Admin**, lalu *Re-run*. Atau tempel `firestore.rules` manual di Firebase Console (Firestore → Rules → Publish) dan jalankan ulang workflow.
 - Kalau workflow gagal `403 (hosting)` → service account butuh role **Firebase Hosting Admin** di Google Cloud Console → IAM.
 - Kalau gagal `site not found` → buka Firebase Console → **Hosting → Get started** sekali untuk membuat site.
 - Limitasi: tanpa backend, proteksi anti-spam hanya dari rules (format & panjang data) — belum ada rate limit per pengunjung.

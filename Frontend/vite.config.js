@@ -6,6 +6,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    // Kode inti notifikasi pemandu dipakai bersama dengan Backend (../Backend/src/core).
+    fs: { allow: ['..'] },
     // Allows sharing the dev server via a cloudflared quick tunnel (random *.trycloudflare.com host each run).
     allowedHosts: ['.trycloudflare.com'],
     proxy: {

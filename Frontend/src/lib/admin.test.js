@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { filterReservations, sortReservations } from './admin.js'
+import { filterReservations, guideNotifyInfo, sortReservations } from './admin.js'
 
 const rows = [
   { id: '1', nama: 'Budi Santoso', kontak: '081234567890', tanggal: '2026-11-01' },
@@ -60,4 +60,17 @@ test('sortir tidak mengubah array asli', () => {
   const data = [{ id: '1', nama: 'B' }, { id: '2', nama: 'A' }]
   sortReservations(data, [{ key: 'nama', dir: 'asc' }])
   assert.deepEqual(data.map((r) => r.id), ['1', '2'])
+})
+
+test('status notifikasi pemandu mengikuti field yang ditulis job Backend', () => {
+  const base = { status: 'dikonfirmasi' }
+  assert.equal(guideNotifyInfo({ status: 'menunggu-konfirmasi' }).label, '—')
+  assert.equal(guideNotifyInfo(base).label, 'Menunggu alokasi')
+  assert.equal(guideNotifyInfo({ ...base, guideId: 'g1' }).label, 'Ditugaskan, email belum terkirim')
+  assert.equal(
+    guideNotifyInfo({ ...base, guideId: 'g1', guideNotifiedAt: '2026-11-04T00:00:00Z' }).tone,
+    'ok',
+  )
+  assert.equal(guideNotifyInfo({ ...base, guideId: 'g1', guideNotifyStatus: 'gagal' }).tone, 'warn')
+  assert.equal(guideNotifyInfo({ ...base, guideNotifyStatus: 'tanpa-pemandu' }).tone, 'warn')
 })

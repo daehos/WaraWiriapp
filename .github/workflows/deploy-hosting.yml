@@ -25,6 +25,19 @@ jobs:
         working-directory: Frontend
         run: npm run build
 
+      # Aturan Firestore harus tayang SEBELUM situs baru (situs baru menulis field
+      # penugasan pemandu). Sengaja tanpa continue-on-error: kalau gagal (mis. akun
+      # layanan belum punya peran "Firebase Rules Admin"), deploy situs ikut berhenti
+      # dan situs lama tetap utuh. Cadangan: tempel firestore.rules di Firebase Console.
+      - name: Deploy Firestore rules
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json" \
+            npx --yes firebase-tools@15 deploy --only firestore:rules --project warawiriapp-da23e
+          rm -f "$RUNNER_TEMP/firebase-sa.json"
+
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

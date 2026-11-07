@@ -53,5 +53,8 @@ export const village = {
       'Homestay warga',
       'Kuliner lokal',
     ],
+    // Slot kunjungan (WIB). Pemandu dialokasikan per slot, jadi satu pemandu
+    // tidak ditugaskan ke dua rombongan di slot yang sama.
+    waktu: ['08:00 – 10:00', '10:00 – 12:00', '13:00 – 15:00', '15:00 – 17:00'],
   },
 }

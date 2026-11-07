@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { connectAuthEmulator, getAuth } from 'firebase/auth'
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
+import { USE_EMULATOR } from './env.js'
 
 // Konfigurasi publik Firebase — memang dirancang untuk diketahui browser (bukan rahasia).
 // Rahasia sejatinya ada di security rules, bukan di config ini.
@@ -17,3 +18,13 @@ const app = initializeApp(firebaseConfig)
 
 export const db = getFirestore(app)
 export const auth = getAuth(app)
+
+// Mode lokal: semua baca/tulis & login masuk ke emulator di laptop, bukan project asli.
+if (USE_EMULATOR) {
+  try {
+    connectFirestoreEmulator(db, '127.0.0.1', 8080)
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  } catch {
+    // hot-reload memanggil ulang modul ini; koneksi emulator sudah terpasang.
+  }
+}

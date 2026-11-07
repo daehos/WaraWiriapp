@@ -1,0 +1,32 @@
+{
+  "_catatan": "Data pemandu diinput manual untuk Sprint ini (fungsi input oleh Admin LSM menyusul di sprint berikutnya). Email di sini memakai Mailinator (inbox publik, siapa pun bisa membuka) — hanya untuk demo; ganti dengan email asli sebelum `npm run seed-guides` di produksi. destinasi kosong = menguasai semua destinasi; maxGroups = batas rombongan per hari; urutan = prioritas saat beban sama (kecil = lebih dulu).",
+  "guides": [
+    {
+      "id": "asep-kurnia",
+      "nama": "Asep Kurnia",
+      "email": "pemandu.asep@mailinator.com",
+      "destinasi": ["Trekking sawah terasering", "Kerajinan & budaya warga"],
+      "maxGroups": 2,
+      "aktif": true,
+      "urutan": 1
+    },
+    {
+      "id": "wati-susanti",
+      "nama": "Wati Susanti",
+      "email": "pemandu.wati@mailinator.com",
+      "destinasi": ["Kerajinan & budaya warga", "Homestay warga", "Kuliner lokal"],
+      "maxGroups": 3,
+      "aktif": true,
+      "urutan": 2
+    },
+    {
+      "id": "dede-hermawan",
+      "nama": "Dede Hermawan",
+      "email": "pemandu.dede@mailinator.com",
+      "destinasi": [],
+      "maxGroups": 1,
+      "aktif": true,
+      "urutan": 3
+    }
+  ]
+}

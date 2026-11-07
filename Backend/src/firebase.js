@@ -25,9 +25,14 @@ function resolveCredential() {
   )
 }
 
+// Emulator lokal (`npm run local`): tidak butuh kunci service account.
+const EMULATOR = Boolean(process.env.FIRESTORE_EMULATOR_HOST)
+
 let app
 try {
-  app = initializeApp({ credential: resolveCredential() })
+  app = EMULATOR
+    ? initializeApp({ projectId: process.env.GCLOUD_PROJECT || 'warawiriapp-da23e' })
+    : initializeApp({ credential: resolveCredential() })
 } catch (err) {
   console.error(
     [

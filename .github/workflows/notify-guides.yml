@@ -1,0 +1,75 @@
+name: Notify guides (H-1)
+
+# Job terjadwal PBI-5: alokasi pemandu + kirim email H-1.
+# Berjalan tiap jam (menit ke-5 UTC). Aman diulang: status terkirim disimpan di
+# Firestore, jadi tiap rombongan hanya diemail sekali; kegagalan SMTP dicoba
+# ulang di jam berikutnya; persetujuan terlambat ikut terkirim di run berikutnya.
+#
+# Catatan GitHub: workflow terjadwal hanya jalan dari branch default (main) dan
+# dinonaktifkan otomatis setelah 60 hari tanpa aktivitas repo — aktifkan lagi di
+# tab Actions bila itu terjadi. Jadwal bisa tertunda beberapa menit saat GitHub sibuk.
+on:
+  schedule:
+    - cron: '5 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run: hitung & render email ke artifact, tanpa menulis data / mengirim'
+        type: boolean
+        default: true
+      now:
+        description: 'Simulasi waktu (ISO), mis. 2026-11-04T07:05:00+07:00. Kosong = sekarang'
+        type: string
+        required: false
+
+concurrency:
+  group: notify-guides
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Backend
+        run: npm ci
+
+      - name: Notify guides
+        working-directory: Backend
+        env:
+          EVENT: ${{ github.event_name }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          NOW: ${{ inputs.now }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          MANAGER_EMAIL: ${{ secrets.MANAGER_EMAIL }}
+        run: |
+          if [ "$EVENT" = "schedule" ] && [ -z "$SMTP_HOST" ]; then
+            echo "::notice::SMTP_* secrets belum diisi — job terjadwal dilewati."
+            exit 0
+          fi
+          args=()
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run --outbox); fi
+          if [ -n "$NOW" ]; then args+=("--now=$NOW"); fi
+          npm run notify -- "${args[@]}"
+
+      - name: Upload email previews (dry-run)
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.dry_run
+        uses: actions/upload-artifact@v4
+        with:
+          name: email-preview
+          path: Backend/outbox
+          if-no-files-found: ignore
