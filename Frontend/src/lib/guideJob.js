@@ -46,7 +46,9 @@ function viaVisitorTemplate(message) {
       ? `WaraWiri Village - Penugasan pemandu: ${r.nama}`
       : `WaraWiri Village - PERLU TINDAKAN: ${r.nama} belum punya pemandu`,
     status: isGuide ? 'Penugasan pemandu baru' : 'Belum ada pemandu',
-    is_approved: '',
+    // Template tiket hanya menampilkan tanggal/waktu/lokasi/jumlah di dalam blok
+    // "disetujui", jadi bendera ini harus menyala agar rinciannya muncul.
+    is_approved: 'true',
     is_declined: '',
     tanggal_kunjungan: formatTanggalID(r.tanggal),
     waktu_kunjungan: waktu,
@@ -60,8 +62,8 @@ function viaVisitorTemplate(message) {
         `dan peralatan penunjang untuk ${destinasi}`
       : `${r.pax} orang`,
     alasan_penolakan: reason || '',
-    ticket_url: '',
-    ticket_code: '',
+    ticket_url: typeof window === 'undefined' ? 'https://warawiriapp-da23e.web.app' : window.location.origin,
+    ticket_code: 'tidak diperlukan (email penugasan pemandu)',
   }
 }
 
