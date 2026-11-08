@@ -148,8 +148,8 @@ test('template pemandu belum ada: pakai template tiket sebagai cadangan, salinan
   const p = calls[1].template_params
   assert.equal(p.status, 'Penugasan pemandu baru')
   assert.match(p.jumlah_orang, /^10 orang/)
-  assert.equal(p.is_approved, '')
-  assert.equal(p.ticket_url, '')
+  assert.equal(p.is_approved, 'true') // blok rincian di template tiket hanya tampil bila disetujui
+  assert.equal(p.is_declined, '')
   assert.match(p.lokasi_gedung_ruangan, /Kontak: 081234567890/)
   assert.match(p.jumlah_orang, /P3K/)
   assert.match(p.jumlah_orang, /konsumsi/)
