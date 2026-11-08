@@ -147,7 +147,27 @@ test('email memuat data minimum kartu PBI-5 dan meng-escape input pengunjung', (
   }
   assert.ok(!message.html.includes('<SMA 1>'))
   assert.ok(message.html.includes('&lt;SMA 1&gt;'))
-  assert.ok(!message.text.includes('081234567890'), 'kontak pengunjung tidak ikut dikirim')
+  // pemandu perlu menghubungi rombongan, jadi kontak ikut dikirim
+  assert.ok(message.text.includes('081234567890'))
+  assert.ok(message.html.includes('href="tel:081234567890"'))
+})
+
+test('email pemandu berisi pengingat P3K, konsumsi sesuai jumlah, dan peralatan sesuai destinasi', () => {
+  const build = (extra) =>
+    buildGuideEmail({
+      reservation: reservation(extra),
+      guide: guides[0],
+      managerEmail: CONFIG.managerEmail,
+      from: CONFIG.from,
+      now: at('07:05'),
+    })
+  const trek = build({ pax: 12 })
+  for (const needle of ['P3K', 'Konsumsi', '12 orang', 'Peralatan penunjang', 'tongkat']) {
+    assert.ok(trek.text.includes(needle), `teks harus memuat: ${needle}`)
+    assert.ok(trek.html.includes(needle), `html harus memuat: ${needle}`)
+  }
+  assert.ok(build({ jenisWisata: 'Kuliner lokal' }).text.includes('alergi makanan'))
+  assert.ok(build({ jenisWisata: null }).text.includes('Peralatan penunjang sesuai kegiatan'))
 })
 
 test('email peringatan pengelola menyebut penyebab', () => {

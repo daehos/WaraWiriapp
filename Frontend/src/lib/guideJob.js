@@ -37,19 +37,28 @@ function explain(result) {
 function viaVisitorTemplate(message) {
   const { kind, name, reservation: r, reason } = message.meta
   const isGuide = kind === 'guide'
+  const waktu = r.waktu ? `${r.waktu} WIB` : 'Sesuai jam operasional'
+  const destinasi = r.jenisWisata || 'Destinasi belum ditentukan'
   return {
     to_email: message.to,
     name: isGuide ? `${name} (pemandu)` : name,
     title: isGuide
-      ? `WaraWiri Village - Penugasan pemandu: ${r.nama} (${r.id})`
+      ? `WaraWiri Village - Penugasan pemandu: ${r.nama}`
       : `WaraWiri Village - PERLU TINDAKAN: ${r.nama} belum punya pemandu`,
-    status: isGuide ? 'Penugasan pemandu' : 'Belum ada pemandu',
+    status: isGuide ? 'Penugasan pemandu baru' : 'Belum ada pemandu',
     is_approved: '',
     is_declined: '',
     tanggal_kunjungan: formatTanggalID(r.tanggal),
-    waktu_kunjungan: r.waktu ? `${r.waktu} WIB` : 'Sesuai jam operasional',
-    lokasi_gedung_ruangan: r.jenisWisata || 'Desa Wisata Manud Jaya, Kecamatan Cililin',
-    jumlah_orang: `${r.pax} orang`,
+    waktu_kunjungan: waktu,
+    // Template tiket hanya menampilkan beberapa kolom pendek, jadi rincian
+    // digabung ke kolom lokasi & jumlah orang.
+    lokasi_gedung_ruangan:
+      `${destinasi} | Rombongan: ${r.nama} | Kontak: ${r.kontak}` +
+      `${r.email ? ` | Email: ${r.email}` : ''} | No. reservasi: ${r.id}`,
+    jumlah_orang: isGuide
+      ? `${r.pax} orang | MOHON BAWA: kotak P3K lengkap, konsumsi & air minum untuk ${r.pax} orang, ` +
+        `dan peralatan penunjang untuk ${destinasi}`
+      : `${r.pax} orang`,
     alasan_penolakan: reason || '',
     ticket_url: '',
     ticket_code: '',
