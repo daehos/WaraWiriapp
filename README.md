@@ -176,7 +176,7 @@ Tidak perlu template baru dan tidak perlu attachment. Ganti body template dengan
 
 - **Form reservasi** kini wajib memilih **slot waktu** (`village.reservation.waktu`, disimpan di field `waktu`). Destinasi tetap opsional; tanpa destinasi, rombongan bisa dilayani pemandu mana pun.
 - **Trigger**: reservasi berstatus `dikonfirmasi` (admin menekan Approve).
-- **Antrian alokasi** (`Backend/src/core/allocator.js`, murni & ber-test): FIFO menurut waktu disetujui → pemandu aktif yang menguasai destinasi → belum melewati batas `maxGroups` rombongan/hari → belum punya rombongan di slot waktu yang sama → pilih yang bebannya paling ringan (seri: field `urutan`). Pemandu penuh otomatis **dioper** ke pemandu lain; penugasan yang sudah ada tidak berubah (idempoten).
+- **Antrian alokasi** (`Backend/src/core/allocator.js`, murni & ber-test): FIFO menurut waktu disetujui → pemandu aktif yang menguasai destinasi → belum melewati batas `maxGroups` rombongan/hari → belum punya rombongan di slot waktu yang sama → pilih pemandu dengan prioritas tertinggi (field `urutan`): **satu pemandu diisi sampai penuh dulu** (mis. 4 rombongan), baru rombongan berikutnya **dioper** ke pemandu lain; penugasan yang sudah ada tidak berubah (idempoten).
 - **Notifikasi** (`Backend/src/core/planner.js`): email ke pemandu dengan **tembusan pengelola** (`MANAGER_EMAIL`). Ada dua mode (`NOTIFY_MODE`):
   - `h-1` (**default/produksi**, sesuai kartu): mulai H-1 pukul 07:00 WIB (`NOTIFY_HOUR_WIB`).
   - `segera` (**simulasi/demo**, dipakai otomatis di `npm run local`): begitu admin menekan **Approve**, pemandu langsung dipilih dan emailnya dikirim — tanpa menunggu H-1. Persetujuan terlambat tetap terkirim di run berikutnya. Kegagalan SMTP dicoba ulang tiap jam (maks 5×). Kalau tidak ada pemandu yang tersedia, **pengelola diperingatkan sekali**; begitu pemandu ditambahkan, alokasi + notifikasi berjalan otomatis.
@@ -237,14 +237,14 @@ cd ../Backend && npm run local
 | `Backend/outbox/local/index.html` | Email penugasan yang dihasilkan (buka di browser) |
 | http://localhost:3001 | Backend API (dipanggil dashboard saat Approve) |
 
-Data uji (kunjungan **besok**): 3 reservasi sudah disetujui + 3 menunggu, 3 pemandu (Asep maks 2/hari, Wati maks 3, Dede maks 1).
+Data uji (kunjungan **besok**): 3 reservasi sudah disetujui + 3 menunggu, 3 pemandu (masing-masing maks 4 rombongan/hari; rombongan ke-5 dioper ke pemandu lain).
 
 Skenario yang bisa dicoba (mode `segera`, jadi tidak perlu menunggu H-1):
 
 1. **Buat reservasi** di form (perhatikan kolom *Waktu kunjungan*), lalu cek tampil di `/admin`.
 2. **Approve** reservasi menunggu di `/admin`. Dashboard memanggil Backend (`POST /api/guide-notify`) dan notifikasi di atas tabel menyebut hasilnya, mis. *"Pemandu Wati Susanti ditugaskan; email penugasan terkirim ke …"*. Kolom **Pemandu** ikut terisi, dan emailnya muncul di `Backend/outbox/local/index.html`. (Email tiket EmailJS ke pengunjung dimatikan di mode lokal; pesan "email tidak terkirim" itu normal.)
 3. Reservasi seed yang **sudah disetujui** ikut dialokasikan pada Approve pertama (antrian FIFO), jadi beberapa email langsung muncul sekaligus.
-4. **Approve "Rombongan Kantor Dinas"** (Trekking 13:00) → Asep & Dede sudah penuh, jadi muncul **"Belum ada pemandu"** dan email peringatan untuk pengelola.
+4. **Approve "Rombongan Kantor Dinas"** (Trekking 08:00) → hanya Asep & Dede yang menguasai Trekking dan keduanya sudah memegang rombongan 08:00, jadi muncul **"Belum ada pemandu"** dan email peringatan untuk pengelola.
 5. Di Emulator UI → Firestore → `guides`, **tambahkan pemandu** yang menguasai Trekking (salin dokumen yang ada, ganti `id`/`nama`/`email`), lalu jalankan `cd Backend && npm run local:notify` → rombongan tadi otomatis mendapat pemandu baru. Atur `maxGroups` untuk melihat efek batas dan oper otomatis.
 6. Approve/jalankan job berulang atau klik cepat dua kali → tidak ada email ganda.
 7. Mencoba perilaku produksi (H-1): `npm run local:notify -- --mode=h-1 --h-1` ("sekarang" = hari ini 07:05 WIB) atau `-- --mode=h-1 --now=2026-11-04T06:00:00+07:00` (sebelum 07:00 → alokasi jalan, email belum dikirim).

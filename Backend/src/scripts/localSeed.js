@@ -35,7 +35,8 @@ const batch = db.batch()
 for (const g of guides) batch.set(db.collection('guides').doc(g.id), g)
 
 // 3) Reservasi uji untuk BESOK (WIB): 3 sudah disetujui + 3 menunggu.
-//    Kuota Asep (2/hari) & Dede (1/hari) sengaja bisa habis, sehingga menyetujui
+//    Hanya Asep & Dede yang menguasai Trekking, dan satu pemandu hanya boleh satu
+//    rombongan per slot waktu. Tiga rombongan Trekking di slot 08:00 membuat
 //    "Rombongan Kantor Dinas" memicu kasus "belum ada pemandu".
 const TREK = 'Trekking sawah terasering'
 const BUDAYA = 'Kerajinan & budaya warga'
@@ -47,7 +48,7 @@ const demo = [
   ['SMA Negeri 1 Cililin', 30, '08:00 – 10:00', TREK, true],
   ['Keluarga Pratama', 6, '08:00 – 10:00', TREK, true],
   ['Komunitas Fotografi', 12, '10:00 – 12:00', TREK, true],
-  ['Rombongan Kantor Dinas', 20, '13:00 – 15:00', TREK, false],
+  ['Rombongan Kantor Dinas', 20, '08:00 – 10:00', TREK, false],
   ['PKK Desa Sukamaju', 15, '08:00 – 10:00', BUDAYA, false],
   ['Wisata Kuliner Alumni', 9, '10:00 – 12:00', KULINER, false],
 ]
