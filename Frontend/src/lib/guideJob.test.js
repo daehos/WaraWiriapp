@@ -68,7 +68,8 @@ test('Approve: pemandu dialokasikan dan email EmailJS dikirim ke mailinator pema
   assert.equal(p.cc_email, 'pengelola.warawiri@mailinator.com')
   assert.match(p.subject, /rombongan SMA 1 \(10 orang\)/)
   assert.match(p.message_html, /<table/)
-  assert.doesNotMatch(p.message, /081234567890/) // kontak pengunjung tidak ikut
+  assert.match(p.message, /081234567890/)
+  assert.match(p.message_html, /P3K/)
   assert.equal(r.guideNotifyStatus, 'terkirim')
 })
 
@@ -145,10 +146,12 @@ test('template pemandu belum ada: pakai template tiket sebagai cadangan, salinan
     ],
   )
   const p = calls[1].template_params
-  assert.equal(p.status, 'Penugasan pemandu')
-  assert.equal(p.jumlah_orang, '10 orang')
+  assert.equal(p.status, 'Penugasan pemandu baru')
+  assert.match(p.jumlah_orang, /^10 orang/)
   assert.equal(p.is_approved, '')
   assert.equal(p.ticket_url, '')
-  assert.equal(JSON.stringify(calls).includes('081234567890'), false) // kontak pengunjung tidak ikut
+  assert.match(p.lokasi_gedung_ruangan, /Kontak: 081234567890/)
+  assert.match(p.jumlah_orang, /P3K/)
+  assert.match(p.jumlah_orang, /konsumsi/)
   assert.equal(r.guideNotifyStatus, 'terkirim')
 })
