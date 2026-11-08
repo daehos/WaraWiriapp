@@ -8,6 +8,7 @@
 import { serialize } from '../../../Backend/src/core/jobLock.js'
 import { resultFor } from '../../../Backend/src/core/result.js'
 import { runNotificationJob } from '../../../Backend/src/core/runJob.js'
+import { formatTanggalID } from '../../../Backend/src/core/time.js'
 import { EMAILJS, postEmailJs } from './emailjs.js'
 
 // Mode simulasi: kirim begitu disetujui, tanpa menunggu H-1.
@@ -30,8 +31,34 @@ function explain(result) {
   return `EmailJS menolak pengiriman (${result.status}). ${result.detail}`
 }
 
-/** Mailer EmailJS: template hanya perlu {{subject}}, {{to_email}}, {{cc_email}} dan isi {{{message_html}}}. */
+// Cadangan bila template khusus pemandu belum dibuat di EmailJS: pakai template
+// tiket yang sudah ada. Isinya dibentuk dari kolom yang dikenalnya (nama, judul,
+// status, tanggal, waktu, jumlah orang, lokasi); tidak ada tautan/kode tiket.
+function viaVisitorTemplate(message) {
+  const { kind, name, reservation: r, reason } = message.meta
+  const isGuide = kind === 'guide'
+  return {
+    to_email: message.to,
+    name: isGuide ? `${name} (pemandu)` : name,
+    title: isGuide
+      ? `WaraWiri Village - Penugasan pemandu: ${r.nama} (${r.id})`
+      : `WaraWiri Village - PERLU TINDAKAN: ${r.nama} belum punya pemandu`,
+    status: isGuide ? 'Penugasan pemandu' : 'Belum ada pemandu',
+    is_approved: '',
+    is_declined: '',
+    tanggal_kunjungan: formatTanggalID(r.tanggal),
+    waktu_kunjungan: r.waktu ? `${r.waktu} WIB` : 'Sesuai jam operasional',
+    lokasi_gedung_ruangan: r.jenisWisata || 'Desa Wisata Manud Jaya, Kecamatan Cililin',
+    jumlah_orang: `${r.pax} orang`,
+    alasan_penolakan: reason || '',
+    ticket_url: '',
+    ticket_code: '',
+  }
+}
+
+/** Mailer EmailJS: template pemandu hanya perlu {{subject}}, {{to_email}}, {{cc_email}} dan isi {{{message_html}}}. */
 export function createEmailJsMailer({ gapMs } = {}) {
+  const options = gapMs === undefined ? undefined : { gapMs }
   return {
     name: 'emailjs',
     async send(message) {
@@ -46,9 +73,23 @@ export function createEmailJsMailer({ gapMs } = {}) {
           message: message.text,
           message_html: message.html,
         },
-        gapMs === undefined ? undefined : { gapMs },
+        options,
       )
-      if (!result.ok) throw new Error(explain(result))
+      if (result.ok) return
+
+      // Template pemandu belum ada (400/404) -> pakai template tiket sebagai cadangan.
+      if ((result.status === 400 || result.status === 404) && message.meta) {
+        const fallback = await postEmailJs(EMAILJS.visitorTemplateId, viaVisitorTemplate(message), options)
+        if (!fallback.ok) throw new Error(explain(fallback))
+        if (message.cc) {
+          // template tiket tidak punya kolom Cc: kirim salinan ke pengelola terpisah.
+          const copyParams = { ...viaVisitorTemplate(message), to_email: message.cc, name: 'Pengelola' }
+          const sentCopy = await postEmailJs(EMAILJS.visitorTemplateId, copyParams, options)
+          if (!sentCopy.ok) throw new Error(explain(sentCopy))
+        }
+        return
+      }
+      throw new Error(explain(result))
     },
   }
 }

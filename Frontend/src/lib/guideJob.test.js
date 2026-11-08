@@ -119,3 +119,36 @@ test('pengiriman ulang setelah template diperbaiki berhasil', async () => {
   assert.equal(out.status, 'terkirim')
   assert.equal(r.guideNotifyAttempts, 2)
 })
+
+test('template pemandu belum ada: pakai template tiket sebagai cadangan, salinan pengelola dikirim terpisah', async () => {
+  const calls = []
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body)
+    calls.push(body)
+    const missing = body.template_id === 'template_pemandu'
+    return { ok: !missing, status: missing ? 400 : 200, text: async () => 'template not found' }
+  }
+  const r = reservation({ jenisWisata: 'Kuliner lokal' })
+  const out = await notifyGuideInBrowser({
+    store: memoryStore([r]),
+    mailer: createEmailJsMailer({ gapMs: 0 }),
+    id: r.id,
+    now: NOW,
+  })
+  assert.equal(out.status, 'terkirim')
+  assert.deepEqual(
+    calls.map((c) => [c.template_id, c.template_params.to_email]),
+    [
+      ['template_pemandu', 'pemandu.asep@mailinator.com'],
+      ['template_m9m7tsf', 'pemandu.asep@mailinator.com'],
+      ['template_m9m7tsf', 'pengelola.warawiri@mailinator.com'],
+    ],
+  )
+  const p = calls[1].template_params
+  assert.equal(p.status, 'Penugasan pemandu')
+  assert.equal(p.jumlah_orang, '10 orang')
+  assert.equal(p.is_approved, '')
+  assert.equal(p.ticket_url, '')
+  assert.equal(JSON.stringify(calls).includes('081234567890'), false) // kontak pengunjung tidak ikut
+  assert.equal(r.guideNotifyStatus, 'terkirim')
+})

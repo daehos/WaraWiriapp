@@ -78,6 +78,7 @@ export function buildGuideEmail({ reservation, guide, managerEmail, from, now = 
   ].join('\n')
 
   return {
+    meta: { kind: 'guide', name: guide.nama, reservation },
     from,
     to: guide.email,
     cc: managerEmail || undefined,
@@ -110,6 +111,7 @@ export function buildManagerAlertEmail({ reservation, reason, managerEmail, from
   ].join('\n')
 
   return {
+    meta: { kind: 'manager', name: 'Pengelola', reservation, reason },
     from,
     to: managerEmail,
     subject,

@@ -210,6 +210,8 @@ Begitu admin menekan **Approve**: tiket dikirim ke pengunjung → pemandu dipili
 2. **Deploy** (urutannya penting — lihat "Deploy ke Production" di bawah): merge ke `main`. Workflow sekarang menayangkan `firestore.rules` terlebih dulu, baru situs.
 3. **Coba**: login `/admin` → Approve satu reservasi (isi email pengunjung dengan alamat milik sendiri untuk melihat tiketnya juga) → buka `https://www.mailinator.com/v4/public/inboxes.jsp?to=pemandu.asep` (atau `wati`, `dede`, `pengelola.warawiri`).
 
+*Tanpa akses EmailJS:* kalau `template_pemandu` belum ada, email pemandu otomatis dikirim lewat **template tiket yang sudah ada** (judul "Penugasan pemandu", tanggal, waktu, jumlah orang, destinasi; tanpa tautan tiket) dan salinan untuk pengelola dikirim sebagai email terpisah. Tampilannya mengikuti template tiket; begitu `template_pemandu` dibuat, otomatis dipakai.
+
 *Kalau pemandu tidak menerima email:* pesan di atas tabel admin menyebut penyebabnya (mis. template belum ada → `template_pemandu` tidak ditemukan). Perbaiki, lalu klik **Kirim email pemandu** pada baris itu — tidak perlu Approve ulang.
 
 *Catatan:* Mailinator itu publik (siapa saja yang tahu nama inbox bisa membaca) — pakai data uji. EmailJS gratis dibatasi 200 email/bulan dan 1 permintaan/detik (sudah diberi jeda otomatis). Alokasi dijalankan dari browser admin, jadi jangan Approve bersamaan dari dua admin pada reservasi yang berebut pemandu yang sama.
