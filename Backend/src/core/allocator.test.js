@@ -56,8 +56,8 @@ test('antrian FIFO: reservasi yang disetujui lebih dulu mendapat pemandu priorit
     guides: [guide('a', { urutan: 1 }), guide('b', { urutan: 2 })],
     today: TODAY,
   })
-  // early diproses dulu -> 'a'; late: beban a=1,b=0 -> 'b'
-  assert.deepEqual(idsOf(out), [[early.id, 'a'], [late.id, 'b']])
+  // early diproses dulu; keduanya 'a' karena satu pemandu diisi dulu sampai penuh
+  assert.deepEqual(idsOf(out), [[early.id, 'a'], [late.id, 'a']])
 })
 
 test('pemandu penuh otomatis dioper ke pemandu lain', () => {
@@ -135,4 +135,17 @@ test('reservasi tanggal lampau diabaikan', () => {
   const past = res({ tanggal: '2026-11-03' })
   const out = allocate({ reservations: [past], guides: [guide('a')], today: TODAY })
   assert.equal(out.assignments.length + out.unassigned.length, 0)
+})
+
+test('batas 4 rombongan/hari: rombongan ke-5 otomatis dioper ke pemandu kedua', () => {
+  const guides = [guide('a', { maxGroups: 4, urutan: 1 }), guide('b', { maxGroups: 4, urutan: 2 })]
+  const slots = ['08:00', '10:00', '13:00', '15:00', '17:00']
+  const reservations = slots.map((waktu, i) =>
+    res({ id: `R${i + 1}`, waktu, ticketIssuedAt: `2026-11-03T0${i}:00:00Z` }),
+  )
+  const { assignments, unassigned } = allocate({ reservations, guides, today: TODAY })
+  assert.equal(unassigned.length, 0)
+  const byGuide = (id) => assignments.filter((a) => a.guide.id === id).map((a) => a.reservation.id)
+  assert.deepEqual(byGuide('a'), ['R1', 'R2', 'R3', 'R4'])
+  assert.deepEqual(byGuide('b'), ['R5'])
 })

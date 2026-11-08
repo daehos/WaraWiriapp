@@ -7,8 +7,9 @@
 //  3. Satu pemandu dibatasi `maxGroups` rombongan per hari; kalau penuh,
 //     rombongan otomatis dioper ke pemandu berikutnya yang masih tersedia.
 //  4. Satu pemandu tidak boleh memegang dua rombongan di slot waktu yang sama.
-//  5. Di antara yang memenuhi syarat, pilih yang paling sedikit bebannya hari
-//     itu (beban sama -> urutan prioritas `urutan`, lalu nama).
+//  5. Di antara yang memenuhi syarat, pilih pemandu dengan prioritas tertinggi
+//     (`urutan` terkecil, lalu nama): satu pemandu diisi sampai penuh dulu,
+//     baru rombongan berikutnya dioper ke pemandu lain.
 
 // Batas default bila data pemandu tidak menyebutkan `maxGroups`.
 export const DEFAULT_MAX_GROUPS = 3
@@ -102,11 +103,9 @@ export function allocate({ reservations, guides, today }) {
       continue
     }
 
-    // `free` sudah terurut menurut prioritas; sort stabil menjaga urutan itu saat beban sama.
-    const pick = [...free].sort(
-      (a, b) =>
-        (load.get(dayKey(a.id, r.tanggal)) ?? 0) - (load.get(dayKey(b.id, r.tanggal)) ?? 0),
-    )[0]
+    // `free` sudah terurut menurut prioritas (`urutan`): isi satu pemandu sampai
+    // penuh dulu, baru oper ke pemandu berikutnya.
+    const pick = free[0]
     take(pick.id, r)
     assignments.push({ reservation: r, guide: pick })
   }
